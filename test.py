@@ -1,5 +1,4 @@
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
 import qmeq
 from parallel_dots import ParallelDots
@@ -127,7 +126,7 @@ def plot_spectrum(eigvals):
     plt.show(block=False)
 
 
-def plot_tuning(delta_epsilons, system):
+def calc_tuning(delta_epsilons, system, sort=True):
     system_size = system.kern.shape[0]
     eigs = np.zeros((len(delta_epsilons), system_size), dtype=complex)
 
@@ -136,20 +135,60 @@ def plot_tuning(delta_epsilons, system):
         system.solve()
         current_eigvals = np.linalg.eigvals(system.kern)
         # sorting messes it up if they cross
-        eigs[i, :] = np.sort(current_eigvals)
+        if sort:
+            eigs[i, :] = np.sort(current_eigvals)
+        else:
+            eigs[i, :] = current_eigvals
 
-    fig, (ax_real, ax_imag, ax_spec) = plt.subplots(1, 3, figsize=(15, 8))
-    for eig_index in range(system_size): 
+    return eigs
+
+
+def plot_tuning(eigs, delta_epsilons):
+    system_size = eigs.shape[1]
+    fig, (ax_real, ax_imag, ax_spec) = plt.subplots(1, 3, figsize=(10, 4))
+    for eig_index in range(system_size):
         ax_real.plot(delta_epsilons, np.real(eigs[:, eig_index]))
         ax_imag.plot(delta_epsilons, np.imag(eigs[:, eig_index]))
 
         im_parts = [eigval.imag for eigval in eigs[:, eig_index]]
         re_parts = [eigval.real for eigval in eigs[:, eig_index]]
-        ax_spec.scatter(re_parts, im_parts, s=np.linspace(2, 8, len(delta_epsilons)))
+        ax_spec.scatter(re_parts, im_parts,
+                        s=np.linspace(2, 8, len(delta_epsilons)))
     plt.show(block=False)
     ax_real.legend(np.arange(system_size))
     ax_imag.legend(np.arange(system_size))
 
+
+def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
+    min_mag_index = 0
+    min_mag = float('inf')
+    for i, (eig1_i, eig2_i) in enumerate(zip(eigs1, eigs2)):
+        current_mag = abs(eig1_i-eig2_i)
+        if current_mag < min_mag:
+            min_mag_index = i
+            min_mag = current_mag
+
+    return delta_epsilons[min_mag_index]
+
+def check_if_exc_point(system, eigenval_tol=0.1, eigenvec_tol=0.1):
+    eigenvals, eigenvecs = np.linalg.eig(system.kern)
+
+    # get indices of pairs of potential eigenvectors corr. to exc. point
+    potential_indices = []
+    for i in range(len(eigenvals)-1):
+        curr_seps = np.abs(eigenvals[i] - eigenvals[i+1::])
+        curr_min_sep_ind = np.argmin(curr_seps)
+        if curr_seps[curr_min_sep_ind] < eigenval_tol:
+            potential_indices.append((i, i+curr_min_sep_ind+1))
+    
+    for i, j in potential_indices:
+        distance = np.linalg.norm(eigenvecs[:, i]-eigenvecs[:, j])
+        if distance > eigenvec_tol:
+            # remove from potential_indices
+            pass
+
+    # return false if empty list
+    return potential_indices
 
 
 
@@ -157,18 +196,20 @@ if __name__ == '__main__':
     gamma = 1
     delta_eps = gamma*1e-3
     delta_t = gamma*1e-3
-    v_bias = 400*gamma
+    v_bias = 30*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
     parameters = 'stephanie'
-    parallel_dots_1vN = ParallelDots(gamma, delta_eps, delta_t, d_vec,
-                                     'py1vN', parameters, v_bias)
     parallel_dots_lind = ParallelDots(gamma, delta_eps, delta_t, d_vec,
                                       'pyLindblad', parameters, v_bias)
-    parallel_dots_1vN.solve()
     parallel_dots_lind.solve()
-    delta_epsilons = np.linspace(0.2, 0.4, 100)
-    plot_tuning(delta_epsilons, parallel_dots_1vN)
-    plot_tuning(delta_epsilons, parallel_dots_lind)
+    delta_epsilons = np.linspace(0.29, 0.30, 500)
+    eigs = calc_tuning(delta_epsilons, parallel_dots_lind, sort=True)
+    plot_tuning(eigs, delta_epsilons)
+    d_eps_exc_point = calc_delta_eps_at_exc_point(delta_epsilons,
+                                                  eigs[:, 3], eigs[:, 4])
+    parallel_dots_lind.change_delta_eps(d_eps_exc_point)
+    parallel_dots_lind.solve()
+    success = check_if_exc_point(parallel_dots_lind)
     
