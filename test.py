@@ -1,10 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import qmeq
 from parallel_dots import ParallelDots
 
 
 def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
+    """ Calculate stability matrices (conductance and current) of QD-system.
+
+    Arguments:
+    system -- qmeq.Builder object representing QD-system
+    vlst -- list of bias voltages
+    vglst -- list of gate voltages
+    delta_eps -- Maybe remove since parallel dot has it has attribute?
+    dV -- step size for numerical derivative
+
+    Returns:
+    stab -- current matrix
+    stab_cond -- conductance matrix
+    """
     vpnt, vgpnt = vlst.shape[0], vglst.shape[0]
     stab = np.zeros((vpnt, vgpnt))
     stab_cond = stab.copy()
@@ -12,10 +24,10 @@ def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
     for j1 in range(vgpnt):
         system.change(hsingle={(0, 0): -vglst[j1] + delta_eps,
                                (1, 1): -vglst[j1] - delta_eps})
-        system.solve(masterq=False)
+        system.solve(masterq=False)  # diagonalizes, but doesn't solve
         for j2 in range(vpnt):
             system.change(mulst={0: vlst[j2]/2, 1: -vlst[j2]/2})
-            system.solve(qdq=False)
+            system.solve(qdq=False)  # solves, but doesn't diagonalize
             stab[j1, j2] = system.current[0]
 
             system.add(mulst={0: dV/2, 1: -dV/2})
@@ -25,6 +37,17 @@ def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
 
 
 def stab_plot(stab, stab_cond, vlst, vglst, U, gam):
+    """Plots stability diagrams.
+
+    Arguments:
+    stab -- current matrix from stab_calc
+    stab_cond -- conductance matrix from stab_calc
+    vlst -- list of bias voltages
+    vglst -- list of gate voltages
+    U -- coulomb energy (to get correct scaling) Maybe not needed?
+    gam -- gamma of system
+    """
+
     (xmin, xmax, ymin, ymax) = np.array([vglst[0], vglst[-1],
                                          vlst[0], vlst[-1]])/gam
     plt.figure(figsize=(12, 4.2))
@@ -53,6 +76,14 @@ def stab_plot(stab, stab_cond, vlst, vglst, U, gam):
 
 
 def quick_plot(system, delta_eps, gamma, parameters, U=None):
+    """ Plots the stability diagrams of the system for standard parameters.
+
+    Arguments:
+    system -- qmeq.Builder object representing QD-system
+    delta_eps -- maybe not needed?
+    gamma -- gamma of system
+    parameters -- 'stephanie' or 'paper'
+    """
     if parameters == 'stephanie':
         U = 250*gamma
     elif parameters == 'paper':
@@ -65,52 +96,52 @@ def quick_plot(system, delta_eps, gamma, parameters, U=None):
     stab_plot(stab, stab_cond, vlst, vglst, U, gamma)
 
 
-def create_double_dot_system(gamma, parameters, delta_eps,
-                             delta_t, d_vec, vbias=None, temp=None, U=None):
-    vgate = 0
-    if parameters == 'stephanie':
-        vbias = 30*gamma
-        temp = 10*gamma
-        U = 250*gamma
-    elif parameters == 'paper':
-        vbias = 1e4*gamma
-        temp = 862*gamma
-        U = 2e4*gamma
-
-    dband = 12*U
-    delta_gammas = d_vec*delta_t
-    t0s = np.sqrt((gamma + delta_gammas)/(2*np.pi))
-
-    # number of single particle states
-    nsingle = 2
-
-    # number of leads
-    nleads = 2
-
-    # single particle hamiltonian, 0: upper, 1: lower
-    hsingle = {(0, 0): -vgate + delta_eps,
-               (1, 1): -vgate - delta_eps}
-
-    # Coulomb matrix elements
-    coulomb = {(0, 1, 1, 0): U}
-
-    # single particle tunneling amplitudes, (Lead L/R 0/1, Dot upper/lower 0/1)
-    tleads = {(0, 0): t0s[0],  # L <- upper
-              (1, 0): t0s[1],  # R <- upper
-              (0, 1): t0s[2],  # L <- lower
-              (1, 1): t0s[3]}  # R <- lower
-
-    # chemical potentials and temperatures of the leads
-    #           L         R
-    mulst = {0: vbias/2, 1: -vbias/2}
-    tlst = {0: temp, 1: temp}
-
-    # python kerntype + make_kern_copy fixes problem with kernel
-    system = qmeq.Builder(nsingle, hsingle, coulomb, nleads, tleads, mulst,
-                          tlst, dband, kerntype='py1vN', itype=1)
-    system.make_kern_copy = True
-
-    return system
+# def create_double_dot_system(gamma, parameters, delta_eps,
+#                              delta_t, d_vec, vbias=None, temp=None, U=None):
+#     vgate = 0
+#     if parameters == 'stephanie':
+#         vbias = 30*gamma
+#         temp = 10*gamma
+#         U = 250*gamma
+#     elif parameters == 'paper':
+#         vbias = 1e4*gamma
+#         temp = 862*gamma
+#         U = 2e4*gamma
+# 
+#     dband = 12*U
+#     delta_gammas = d_vec*delta_t
+#     t0s = np.sqrt((gamma + delta_gammas)/(2*np.pi))
+# 
+#     # number of single particle states
+#     nsingle = 2
+# 
+#     # number of leads
+#     nleads = 2
+# 
+#     # single particle hamiltonian, 0: upper, 1: lower
+#     hsingle = {(0, 0): -vgate + delta_eps,
+#                (1, 1): -vgate - delta_eps}
+# 
+#     # Coulomb matrix elements
+#     coulomb = {(0, 1, 1, 0): U}
+# 
+#     # single particle tunneling amplitudes, (Lead L/R 0/1, Dot upper/lower 0/1)
+#     tleads = {(0, 0): t0s[0],  # L <- upper
+#               (1, 0): t0s[1],  # R <- upper
+#               (0, 1): t0s[2],  # L <- lower
+#               (1, 1): t0s[3]}  # R <- lower
+# 
+#     # chemical potentials and temperatures of the leads
+#     #           L         R
+#     mulst = {0: vbias/2, 1: -vbias/2}
+#     tlst = {0: temp, 1: temp}
+# 
+#     # python kerntype + make_kern_copy fixes problem with kernel
+#     system = qmeq.Builder(nsingle, hsingle, coulomb, nleads, tleads, mulst,
+#                           tlst, dband, kerntype='py1vN', itype=1)
+#     system.make_kern_copy = True
+# 
+#     return system
 
 
 def plot_spectrum(eigvals):
@@ -180,16 +211,17 @@ def check_if_exc_point(system, eigenval_tol=0.1, eigenvec_tol=0.1):
         curr_min_sep_ind = np.argmin(curr_seps)
         if curr_seps[curr_min_sep_ind] < eigenval_tol:
             potential_indices.append((i, i+curr_min_sep_ind+1))
-    
-    for i, j in potential_indices:
+
+    # Make copy of potential_indices and loop over it ([:]). This way one can
+    # remove elements in the original list when iterating over it
+    for i, j in potential_indices[:]:
         distance = np.linalg.norm(eigenvecs[:, i]-eigenvecs[:, j])
         if distance > eigenvec_tol:
             # remove from potential_indices
-            pass
+            potential_indices.remove((i, j))
 
-    # return false if empty list
+    # returns empty list if no exceptional point
     return potential_indices
-
 
 
 if __name__ == '__main__':
@@ -209,7 +241,7 @@ if __name__ == '__main__':
     plot_tuning(eigs, delta_epsilons)
     d_eps_exc_point = calc_delta_eps_at_exc_point(delta_epsilons,
                                                   eigs[:, 3], eigs[:, 4])
-    parallel_dots_lind.change_delta_eps(d_eps_exc_point)
+    parallel_dots_lind.change_delta_eps(delta_eps)
     parallel_dots_lind.solve()
     success = check_if_exc_point(parallel_dots_lind)
     
