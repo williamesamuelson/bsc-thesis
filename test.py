@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
 
 
@@ -96,55 +97,12 @@ def quick_plot(system, delta_eps, gamma, parameters, U=None):
     stab_plot(stab, stab_cond, vlst, vglst, U, gamma)
 
 
-# def create_double_dot_system(gamma, parameters, delta_eps,
-#                              delta_t, d_vec, vbias=None, temp=None, U=None):
-#     vgate = 0
-#     if parameters == 'stephanie':
-#         vbias = 30*gamma
-#         temp = 10*gamma
-#         U = 250*gamma
-#     elif parameters == 'paper':
-#         vbias = 1e4*gamma
-#         temp = 862*gamma
-#         U = 2e4*gamma
-# 
-#     dband = 12*U
-#     delta_gammas = d_vec*delta_t
-#     t0s = np.sqrt((gamma + delta_gammas)/(2*np.pi))
-# 
-#     # number of single particle states
-#     nsingle = 2
-# 
-#     # number of leads
-#     nleads = 2
-# 
-#     # single particle hamiltonian, 0: upper, 1: lower
-#     hsingle = {(0, 0): -vgate + delta_eps,
-#                (1, 1): -vgate - delta_eps}
-# 
-#     # Coulomb matrix elements
-#     coulomb = {(0, 1, 1, 0): U}
-# 
-#     # single particle tunneling amplitudes, (Lead L/R 0/1, Dot upper/lower 0/1)
-#     tleads = {(0, 0): t0s[0],  # L <- upper
-#               (1, 0): t0s[1],  # R <- upper
-#               (0, 1): t0s[2],  # L <- lower
-#               (1, 1): t0s[3]}  # R <- lower
-# 
-#     # chemical potentials and temperatures of the leads
-#     #           L         R
-#     mulst = {0: vbias/2, 1: -vbias/2}
-#     tlst = {0: temp, 1: temp}
-# 
-#     # python kerntype + make_kern_copy fixes problem with kernel
-#     system = qmeq.Builder(nsingle, hsingle, coulomb, nleads, tleads, mulst,
-#                           tlst, dband, kerntype='py1vN', itype=1)
-#     system.make_kern_copy = True
-# 
-#     return system
-
-
 def plot_spectrum(eigvals):
+    """ Plots the eigenvalues in the complex plane.
+
+    Arguments:
+    eigvals -- eigenvalues to be plotted
+    """
     im_parts = [eigval.imag for eigval in eigvals]
     re_parts = [eigval.real for eigval in eigvals]
 
@@ -158,6 +116,18 @@ def plot_spectrum(eigvals):
 
 
 def calc_tuning(delta_epsilons, system, sort=True):
+    """ Calculates the tuning process of eigenvalues when changing delta_eps.
+
+    Arguments:
+    delta_epsilons -- vector of delta_epsilons for tuning
+    system -- ParallelDot object
+    sort -- Determines if the eigenvalues are sorted or not. Sorting causes
+            jumping at crossings, but fixes random jumpings caused by numpy.
+
+    Returns:
+    eigs -- matrix of eigenvalues (columns) for different delta_epsilons
+            (rows)
+    """
     system_size = system.kern.shape[0]
     eigs = np.zeros((len(delta_epsilons), system_size), dtype=complex)
 
@@ -165,7 +135,6 @@ def calc_tuning(delta_epsilons, system, sort=True):
         system.change_delta_eps(delta_e)
         system.solve()
         current_eigvals = np.linalg.eigvals(system.kern)
-        # sorting messes it up if they cross
         if sort:
             eigs[i, :] = np.sort(current_eigvals)
         else:
@@ -175,6 +144,12 @@ def calc_tuning(delta_epsilons, system, sort=True):
 
 
 def plot_tuning(eigs, delta_epsilons):
+    """ Plots the tuning process of the eigenvalues when changing delta_eps.
+
+    Parameters:
+    eigs -- matrix of eigenvalues at different delta_epsilon from calc_tuning
+    delta_epsilons -- vector of delta_epsilons
+    """
     system_size = eigs.shape[1]
     fig, (ax_real, ax_imag, ax_spec) = plt.subplots(1, 3, figsize=(10, 4))
     for eig_index in range(system_size):
@@ -183,14 +158,29 @@ def plot_tuning(eigs, delta_epsilons):
 
         im_parts = [eigval.imag for eigval in eigs[:, eig_index]]
         re_parts = [eigval.real for eigval in eigs[:, eig_index]]
+        # scatter plot where the size changes over the delta_epsilons
         ax_spec.scatter(re_parts, im_parts,
                         s=np.linspace(2, 8, len(delta_epsilons)))
-    plt.show(block=False)
+    plt.show()
     ax_real.legend(np.arange(system_size))
     ax_imag.legend(np.arange(system_size))
 
 
 def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
+    """ Calculates delta_epsilon at eigenvalue crossing.
+
+    Parameters:
+    delta_epsilons -- vector of delta_epsilons
+    eigs1 -- vector of 1st eigenvalue at different delta_epsilons
+    eigs2 -- vector of 2st eigenvalue at different delta_epsilons
+
+    Returns:
+    delta_epsilon -- the value in delta_epsilons which is closest to the
+                     crossing
+
+    Warning: Must check if there is an exceptional point in delta_epsilons
+             first.
+    """
     min_mag_index = 0
     min_mag = float('inf')
     for i, (eig1_i, eig2_i) in enumerate(zip(eigs1, eigs2)):
@@ -201,11 +191,28 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
 
     return delta_epsilons[min_mag_index]
 
+
 def check_if_exc_point(system, eigenval_tol=0.1, eigenvec_tol=0.1):
-    eigenvals, eigenvecs = np.linalg.eig(system.kern)
+    """ Checks if system is at an exceptional point.
+
+
+    Parameters:
+    system -- the QD system (qmeq.Builder object)
+    eigenval_tol -- tolerance for eigenvalue merge
+    eigenvec_tol -- tolerance for eigenvector merge
+
+    Returns:
+    indices -- a pair of indices which describe which eigenvectors correspond
+               to exceptional point. The indices correspond to the ones in
+               system.eigenvalues. Empty if no exceptional point.
+    """
+    eigenvals, eigenvecs = system.eigvals, system.r_eigvecs
 
     # get indices of pairs of potential eigenvectors corr. to exc. point
     potential_indices = []
+    # Loop and compare eigenval i with all eigenvals to the right of i.
+    # If smaller seperation than eigenval_tol, add the pair of indices to
+    # potential_indices.
     for i in range(len(eigenvals)-1):
         curr_seps = np.abs(eigenvals[i] - eigenvals[i+1::])
         curr_min_sep_ind = np.argmin(curr_seps)
@@ -224,24 +231,49 @@ def check_if_exc_point(system, eigenval_tol=0.1, eigenvec_tol=0.1):
     return potential_indices
 
 
+def print_orth_matrix(system):
+    # is the vectorized scalar product wl.H*wr?
+    wr = system.r_eigvecs
+    wl = system.l_eigvecs
+    dots = np.array([[np.vdot(wl[:, i], wr[:, j]) for i in range(len(wr))]
+                    for j in range(len(wr))])
+    print(np.array_str(dots, precision=1, suppress_small=True))
+
+
+def plot_int_vs_diag(system, t_vec):
+    res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
+
+    def rhs(t, y):
+        L = system.kern
+        return L@y
+
+    res_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
+    norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
+    fig, ax = plt.subplots(1, 1)
+    ax.plot(t_vec, norms)
+    ax.set_xlabel('t')
+    ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$')
+    plt.show()
+    print(sum(res_int[-1, :-2]))
+    print(sum(res_diag[-1, :-2]))
+    
+
+
+
 if __name__ == '__main__':
     gamma = 1
-    delta_eps = gamma*1e-3
+    delta_eps = gamma*0.29587174348697
+    # delta_eps = gamma*1
     delta_t = gamma*1e-3
     v_bias = 30*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
-    parameters = 'stephanie'
-    parallel_dots_lind = ParallelDots(gamma, delta_eps, delta_t, d_vec,
-                                      'pyLindblad', parameters, v_bias)
-    parallel_dots_lind.solve()
-    delta_epsilons = np.linspace(0.29, 0.30, 500)
-    eigs = calc_tuning(delta_epsilons, parallel_dots_lind, sort=True)
-    plot_tuning(eigs, delta_epsilons)
-    d_eps_exc_point = calc_delta_eps_at_exc_point(delta_epsilons,
-                                                  eigs[:, 3], eigs[:, 4])
-    parallel_dots_lind.change_delta_eps(delta_eps)
-    parallel_dots_lind.solve()
-    success = check_if_exc_point(parallel_dots_lind)
-    
+    rho_0 = np.array([0.3, 0.2, 0.2, 0.3, 0.1, 0.1], dtype=complex)
+    parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec, rho_0,
+                                 'pyLindblad', parameters='stephanie',
+                                 v_bias=v_bias)
+    parallel_dots.solve()
+    print(parallel_dots.check_if_exc_point())
+    t_vec = np.linspace(0, 5, 50)
+    plot_int_vs_diag(parallel_dots, t_vec) 
