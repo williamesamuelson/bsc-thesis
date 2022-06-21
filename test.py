@@ -192,45 +192,6 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
     return delta_epsilons[min_mag_index]
 
 
-def check_if_exc_point(system, eigenval_tol=0.1, eigenvec_tol=0.1):
-    """ Checks if system is at an exceptional point.
-
-
-    Parameters:
-    system -- the QD system (qmeq.Builder object)
-    eigenval_tol -- tolerance for eigenvalue merge
-    eigenvec_tol -- tolerance for eigenvector merge
-
-    Returns:
-    indices -- a pair of indices which describe which eigenvectors correspond
-               to exceptional point. The indices correspond to the ones in
-               system.eigenvalues. Empty if no exceptional point.
-    """
-    eigenvals, eigenvecs = system.eigvals, system.r_eigvecs
-
-    # get indices of pairs of potential eigenvectors corr. to exc. point
-    potential_indices = []
-    # Loop and compare eigenval i with all eigenvals to the right of i.
-    # If smaller seperation than eigenval_tol, add the pair of indices to
-    # potential_indices.
-    for i in range(len(eigenvals)-1):
-        curr_seps = np.abs(eigenvals[i] - eigenvals[i+1::])
-        curr_min_sep_ind = np.argmin(curr_seps)
-        if curr_seps[curr_min_sep_ind] < eigenval_tol:
-            potential_indices.append((i, i+curr_min_sep_ind+1))
-
-    # Make copy of potential_indices and loop over it ([:]). This way one can
-    # remove elements in the original list when iterating over it
-    for i, j in potential_indices[:]:
-        distance = np.linalg.norm(eigenvecs[:, i]-eigenvecs[:, j])
-        if distance > eigenvec_tol:
-            # remove from potential_indices
-            potential_indices.remove((i, j))
-
-    # returns empty list if no exceptional point
-    return potential_indices
-
-
 def print_orth_matrix(system):
     # is the vectorized scalar product wl.H*wr?
     wr = system.r_eigvecs
@@ -262,8 +223,8 @@ def plot_int_vs_diag(system, t_vec):
 
 if __name__ == '__main__':
     gamma = 1
-    delta_eps = gamma*0.29587174348697
-    # delta_eps = gamma*1
+    # delta_eps = gamma*0.29587174348697
+    delta_eps = gamma*1
     delta_t = gamma*1e-3
     v_bias = 30*gamma
 

@@ -102,7 +102,7 @@ class ParallelDots(Builder):
         eigenvec_tol -- tolerance for eigenvector merge
 
         Returns:
-        indices -- a pair of indices which describe which eigenvectors
+        indices -- pairs of indices which describe which eigenvectors
                    correspond to exceptional point. The indices correspond to
                    the ones in self.eigenvalues. Empty if no exceptional point.
         """
@@ -131,6 +131,8 @@ class ParallelDots(Builder):
         return potential_indices
 
     def dens_matrix_evo(self, t):
+        # something weird with the left and right eigenvectors I think.
+        # not orthonormal
         rho_0 = self.rho_0
         eigvals = self.eigvals
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
