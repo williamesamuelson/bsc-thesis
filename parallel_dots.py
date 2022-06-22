@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import eig as sc_eig
 from qmeq.builder.builder import Builder
+import myLindblad
 
 
 class ParallelDots(Builder):
@@ -55,11 +56,15 @@ class ParallelDots(Builder):
         self.make_kern_copy = True
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
-              sol_eig=True, sort=True, *args, **kwargs):
+              sol_eig=True, sort=True, lamb_shift=True, *args, **kwargs):
 
         self.appr.solve(qdq=qdq, rotateq=rotateq, masterq=masterq,
                         currentq=currentq, *args, **kwargs)
-        if sol_eig:
+
+        if lamb_shift:
+            pass
+
+        if sol_eig: # dont we want to do this every time?
             self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
                                                                   left=True,
                                                                   right=True)
@@ -68,6 +73,12 @@ class ParallelDots(Builder):
                 self.eigvals = self.eigvals[indices]
                 self.l_eigvecs = self.l_eigvecs[:, indices]
                 self.r_eigvecs = self.r_eigvecs[:, indices]
+        
+        for i in range(len(self.eigvals)):
+            scalar_prod = np.vdot(self.l_eigvecs[:, i], self.r_eigvecs[:, i])
+            print(scalar_prod)
+            if not scalar_prod == 1:
+                pass
 
     def change_delta_eps(self, delta_eps):
         new_hsingle = self._create_hsingle(delta_eps)

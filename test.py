@@ -215,9 +215,6 @@ def plot_int_vs_diag(system, t_vec):
     ax.set_xlabel('t')
     ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$')
     plt.show()
-    print(sum(res_int[-1, :-2]))
-    print(sum(res_diag[-1, :-2]))
-    
 
 
 
@@ -235,6 +232,4 @@ if __name__ == '__main__':
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
     parallel_dots.solve()
-    print(parallel_dots.check_if_exc_point())
-    t_vec = np.linspace(0, 5, 50)
-    plot_int_vs_diag(parallel_dots, t_vec) 
+    print_orth_matrix(parallel_dots)
