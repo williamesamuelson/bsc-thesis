@@ -1,6 +1,11 @@
+"""Module containing lamb shifted Lindbladian.
+
+Author: Stephanie Matern
+"""
+
 import numpy as np
-from scipy.linalg import eig
 from scipy.special import digamma
+import qmeq
 
 
 # Fermi Dirac distribtuion
@@ -13,27 +18,30 @@ def FermiDirac(E, mu, T, hole=False):
         return 1./(np.exp(arg)+1)
 
 
-# Vectorisation of the free evolution part [H,rho] -> H' vec(rho), where H is (4,4) and H' = (6,6)
 def vec_H(matrix, dm=0):
-    
+    """Vectorisation of the free evolution part [H,rho] -> H' vec(rho), where
+    H is (4,4) and H' = (6,6)
+    """
     identity = np.identity(4)
-    
+
     if dm == 0:
         res = np.kron(identity, matrix)
-    else: 
+    else:
         res = np.kron(np.conjugate(np.transpose(matrix)), identity)
-    
+
     # only take needed elements
-    res =np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=0)
-    res =np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=1)
-    
+    res = np.delete(res, [1, 2, 3, 4, 7, 8, 11, 12, 13, 14], axis=0)
+    res = np.delete(res, [1, 2, 3, 4, 7, 8, 11, 12, 13, 14], axis=1)
+
     return res
 
-# Vectorisation of disspation part D[rho] -> D' vec(rho) with D'.shape = (6,6)
-def vec_dissipator(matrix1, matrix2, dm = 0):
-    
+
+def vec_dissipator(matrix1, matrix2, dm=0):
+    """Vectorisation of disspation part D[rho] -> D' vec(rho) with D'.shape = (6,6)
+    """
+
     identity = np.identity(4)
-    
+
     if dm == 0:
         product = np.dot(np.conjugate(np.transpose(matrix2)), np.conjugate(np.transpose(matrix1)))
         res = np.kron(product, identity)
@@ -42,19 +50,19 @@ def vec_dissipator(matrix1, matrix2, dm = 0):
     else:
         product = np.dot(matrix1, matrix2)
         res = np.kron(identity, product)
-    
+
     # only take needed elements
-    res =np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=0)
-    res =np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=1)
-        
+    res = np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=0)
+    res = np.delete(res,[1,2,3,4,7,8,11,12,13,14],axis=1)
+
     return res
 
 
-def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = False):
-    
+def calc_Lindblad_kernel(system, swap=False):
+
     # -------------------------
     # input parameters:
-    
+
     # eps1 and eps2: dot energies for double dot system
     # hop_arr: (4,) array with hopping amplitudes t_is for dot i and lead s
     # muL, TL, muR, TR: chemical potentials and temperatures for left and right lead
@@ -62,12 +70,17 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
     # -------------------------
     #
     # output parameters:
-    
+
     # Lindblad kernel: (6,6) array, some ordering as qmeq, ie diagonal elements, the real and imaginiary part 
     # stationary state: (6,) array representing stationary state of density matrix
     # -------------------------
     # -------------------------
-    
+
+    eps1, eps2 = list(system.hsingle.values())
+    hop_arr = list(system.tleads.values())
+    muL, muR = list(system.mulst)
+    TL, TR = list(system.tlst)
+    Uval = list(system.coulomb.values())[0]
 
     t1L = hop_arr[0]
     t2L = hop_arr[2]
@@ -80,22 +93,22 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
     def build_jump_operators():
 
         # dot 1 -------------------------
-        L1 = np.zeros((4,4))
-        L1[1,0] = np.sqrt(FermiDirac(eps1, muL, TL))
-        L1[3,2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
+        L1 = np.zeros((4, 4))
+        L1[1, 0] = np.sqrt(FermiDirac(eps1, muL, TL))
+        L1[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
 
-        L2 = np.zeros((4,4))
-        L2[0,1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
-        L2[2,3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
+        L2 = np.zeros((4, 4))
+        L2[0, 1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
+        L2[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
 
-        L3 = np.zeros((4,4))
-        L3[1,0] = np.sqrt(FermiDirac(eps1, muR, TR))
-        L3[3,2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
+        L3 = np.zeros((4, 4))
+        L3[1, 0] = np.sqrt(FermiDirac(eps1, muR, TR))
+        L3[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
 
-        L4 = np.zeros((4,4))
-        L4[0,1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
-        L4[2,3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
-        #--------------------------------
+        L4 = np.zeros((4, 4))
+        L4[0, 1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
+        L4[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
+        # --------------------------------
 
         # dot 2 -------------------------
         L5 = np.zeros((4,4))
@@ -358,27 +371,26 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
                             LS[m,l] += (np.conjugate(x_arr[alpha])[m,n] * x_arr[beta][n,l] * 
                                        0.5 * (get_S(alpha,beta,n,m) + get_S(alpha,beta, n,l)) )
 
-        return  1j * LS 
-    
-    
+        return 1j * LS
+
     # build (6,6) Lindblad kernel including Lambshift
-    
-    mykern = np.zeros((6,6)) + 0j
-    
-    # dissipation part 
+
+    mykern = np.zeros((6, 6)) + 0j
+
+    # dissipation part
     jump = build_jump_operators()
     for i in range(jump.shape[0]):
-        term1 = vec_dissipator(jump[i],np.transpose(np.conjugate(jump[i])),dm = 1)
-        term2 = - 0.5 * vec_dissipator(np.transpose(np.conjugate(jump[i])),jump[i],dm = 0)
-        term3 = - 0.5 * vec_dissipator(np.transpose(np.conjugate(jump[i])),jump[i],dm = 2)
+        term1 = vec_dissipator(jump[i],np.transpose(np.conjugate(jump[i])), dm=1)
+        term2 = - 0.5 * vec_dissipator(np.transpose(np.conjugate(jump[i])), jump[i], dm=0)
+        term3 = - 0.5 * vec_dissipator(np.transpose(np.conjugate(jump[i])), jump[i], dm=2)
         mykern += 2 * np.pi * (term1 + term2 + term3)
 
     # free evolution of Hamiltonian
     eigene = np.array([0,eps1, eps2, eps1 + eps2 + Uval])
-    ham = np.diag(eigene)   
+    ham = np.diag(eigene)
     free_evo = 1j * (vec_H(ham, dm = 1) - vec_H(ham, dm = 0) )
     mykern += free_evo
-    
+
     mykern_copy = mykern
 
     # transform kernel into qmeq basis
@@ -389,6 +401,7 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
     
     # compare with qmeq before adding lambshift
     qmeq_kern = get_qmeq_kernel()
+    # qmeq_kern = system.kern
     if np.allclose(np.real(mykern),qmeq_kern) == False:
         print('Warning: qmeq and constructed Lindbladian not the same -- change state ordering')
         #print(qmeq_kern - mykern)
@@ -398,7 +411,7 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
         mykern_copy = Utrans2 @ mykern @ np.linalg.inv(Utrans2)
         if np.allclose(np.real(mykern_copy),qmeq_kern) == False:
             print('Warning: qmeq and constructed Lindbladian still not the same')
-            print(qmeq_kern - mykern_copy)
+            print(np.array_str(qmeq_kern - mykern_copy, precision=1))
             print(eps1)
             print(eps2)
         else:
@@ -422,16 +435,17 @@ def calc_Lindblad_kernel(eps1, eps2, hop_arr, muL, TL, muR, TR, Uval, swap = Fal
     
     # calculate stationary state
     
-    initial = np.array([0.25,0.25,0.25,0.25,0,0]) # some vector needed
-    
-    ew, evl, evr = eig(mykern, left = True) 
-    
-    idx = ew.argsort()[::-1]   
-    ew = ew[idx]
-    evl = evl[:,idx]
-    evr = evr[:,idx] 
+    # initial = np.array([0.25,0.25,0.25,0.25,0,0]) # some vector needed
+    # 
+    # ew, evl, evr = eig(mykern, left = True) 
+    # 
+    # idx = ew.argsort()[::-1]   
+    # ew = ew[idx]
+    # evl = evl[:,idx]
+    # evr = evr[:,idx] 
 
-    mystst = 1/np.dot(np.conjugate(evl[:,0]),evr[:,0]) * np.dot(np.conjugate(evl[:,0]), initial) * evr[:,0]
+    # mystst = 1/np.dot(np.conjugate(evl[:,0]),evr[:,0]) * np.dot(np.conjugate(evl[:,0]), initial) * evr[:,0]
 
-    return mykern, mystst
+    return mykern
+    #return mykern, mystst
 

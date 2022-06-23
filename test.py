@@ -222,7 +222,7 @@ if __name__ == '__main__':
     gamma = 1
     # delta_eps = gamma*0.29587174348697
     delta_eps = gamma*1
-    delta_t = gamma*1e-3
+    delta_t = gamma*1e-6
     v_bias = 30*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
@@ -232,4 +232,3 @@ if __name__ == '__main__':
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
     parallel_dots.solve()
-    print_orth_matrix(parallel_dots)
