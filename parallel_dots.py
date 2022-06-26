@@ -46,7 +46,8 @@ class ParallelDots(Builder):
         if v_bias is not None:
             vbias = v_bias
 
-        dband = 12*U
+        # dband = 12*U
+        dband = 1e10
         nsingle = 2
         nleads = 2
         hsingle = self._create_hsingle(delta_eps)
@@ -135,8 +136,8 @@ class ParallelDots(Builder):
         """
 
         # single particle hamiltonian, 0: upper, 1: lower
-        hsingle = {(0, 0): -self.vgate + delta_eps,
-                   (1, 1): -self.vgate - delta_eps}
+        hsingle = {(0, 0): -self.vgate - delta_eps,
+                   (1, 1): -self.vgate + delta_eps}
         return hsingle
 
     def _create_tleads(self, delta_t):

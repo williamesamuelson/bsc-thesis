@@ -448,4 +448,3 @@ def calc_Lindblad_kernel(system, swap=False):
 
     return mykern
     #return mykern, mystst
-

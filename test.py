@@ -115,14 +115,12 @@ def plot_spectrum(eigvals):
     plt.show(block=False)
 
 
-def calc_tuning(delta_epsilons, system, sort=True):
+def calc_tuning(delta_epsilons, system, lamb_shift):
     """ Calculates the tuning process of eigenvalues when changing delta_eps.
 
     Arguments:
     delta_epsilons -- vector of delta_epsilons for tuning
     system -- ParallelDot object
-    sort -- Determines if the eigenvalues are sorted or not. Sorting causes
-            jumping at crossings, but fixes random jumpings caused by numpy.
 
     Returns:
     eigs -- matrix of eigenvalues (columns) for different delta_epsilons
@@ -133,12 +131,8 @@ def calc_tuning(delta_epsilons, system, sort=True):
 
     for i, delta_e in enumerate(delta_epsilons):
         system.change_delta_eps(delta_e)
-        system.solve()
-        current_eigvals = np.linalg.eigvals(system.kern)
-        if sort:
-            eigs[i, :] = np.sort(current_eigvals)
-        else:
-            eigs[i, :] = current_eigvals
+        system.solve(masterq=False, lamb_shift=lamb_shift)  # masterq=False??
+        eigs[i, :] = system.eigvals
 
     return eigs
 
@@ -193,6 +187,8 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
 
 
 def print_orth_matrix(system):
+    """Prints a matrix of scalar products between left and right eigenvectors.
+    """
     # is the vectorized scalar product wl.H*wr?
     wr = system.r_eigvecs
     wl = system.l_eigvecs
@@ -202,6 +198,9 @@ def print_orth_matrix(system):
 
 
 def plot_int_vs_diag(system, t_vec):
+    """Plots the norm-difference between using diagonalization and integration.
+    """
+    # Trace distance of the vectorized matrices?
     res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
 
     def rhs(t, y):
@@ -221,9 +220,9 @@ def plot_int_vs_diag(system, t_vec):
 if __name__ == '__main__':
     gamma = 1
     # delta_eps = gamma*0.29587174348697
-    delta_eps = gamma*1
+    delta_eps = gamma*0.2
     delta_t = gamma*1e-6
-    v_bias = 30*gamma
+    v_bias = 200*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
@@ -231,4 +230,8 @@ if __name__ == '__main__':
     parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec, rho_0,
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
-    parallel_dots.solve()
+    lamb_shift = True
+    parallel_dots.solve(lamb_shift=lamb_shift)
+    delta_epsilons = np.linspace(0.2, 1, 20)
+    eigs = calc_tuning(delta_epsilons, parallel_dots, lamb_shift)
+    plot_tuning(eigs, delta_epsilons)
