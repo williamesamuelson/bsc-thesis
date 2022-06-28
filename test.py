@@ -107,12 +107,17 @@ def plot_spectrum(eigvals):
     re_parts = [eigval.real for eigval in eigvals]
 
     fig, ax = plt.subplots()
-    spec_fmt = {'color': 'blue', 'ls': 'none', 'marker': '.', 'markersize': 15}
-    ax.plot(re_parts, im_parts, **spec_fmt)
+    colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
     ax.grid(True, which='both')
-    ax.axhline(y=0, color='k')
-    ax.axvline(x=0, color='k')
-    plt.show(block=False)
+    ax.set_axisbelow(True)
+    ax.axhline(y=0, color='k', zorder=1)
+    ax.axvline(x=0, color='k', zorder=1)
+    ax.scatter(re_parts, im_parts, c=colors, s=100, zorder=2)
+    f_size = 15
+    ax.set_xlabel(r'Re$\lambda$', fontsize=f_size)
+    ax.set_ylabel(r'Im$\lambda$', fontsize=f_size)
+    # plt.savefig('../spectrum.png', dpi=300)
+    plt.show()
 
 
 def calc_tuning(delta_epsilons, system, lamb_shift):
@@ -131,7 +136,7 @@ def calc_tuning(delta_epsilons, system, lamb_shift):
 
     for i, delta_e in enumerate(delta_epsilons):
         system.change_delta_eps(delta_e)
-        system.solve(masterq=False, lamb_shift=lamb_shift)  # masterq=False??
+        system.solve(lamb_shift=lamb_shift)  # masterq=False??
         eigs[i, :] = system.eigvals
 
     return eigs
@@ -154,10 +159,19 @@ def plot_tuning(eigs, delta_epsilons):
         re_parts = [eigval.real for eigval in eigs[:, eig_index]]
         # scatter plot where the size changes over the delta_epsilons
         ax_spec.scatter(re_parts, im_parts,
-                        s=np.linspace(2, 8, len(delta_epsilons)))
+                        s=np.linspace(5, 12, len(delta_epsilons)))
+    # ax_real.legend(np.arange(system_size))
+    # ax_imag.legend(np.arange(system_size))
+    fs = 15
+    ax_real.set_xlabel(r'$\delta\epsilon$', fontsize=fs)
+    ax_imag.set_xlabel(r'$\delta\epsilon$', fontsize=fs)
+    ax_spec.set_xlabel(r'Re$\lambda$', fontsize=fs)
+    ax_real.set_ylabel(r'Re$\lambda$', fontsize=fs)
+    ax_imag.set_ylabel(r'Im$\lambda$', fontsize=fs)
+    ax_spec.set_ylabel(r'Im$\lambda$', fontsize=fs)
+    plt.tight_layout()
+    # plt.savefig('../tuning_Lind_300.png', dpi=400)
     plt.show()
-    ax_real.legend(np.arange(system_size))
-    ax_imag.legend(np.arange(system_size))
 
 
 def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
@@ -186,17 +200,6 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
     return delta_epsilons[min_mag_index]
 
 
-def print_orth_matrix(system):
-    """Prints a matrix of scalar products between left and right eigenvectors.
-    """
-    # is the vectorized scalar product wl.H*wr?
-    wr = system.r_eigvecs
-    wl = system.l_eigvecs
-    dots = np.array([[np.vdot(wl[:, i], wr[:, j]) for i in range(len(wr))]
-                    for j in range(len(wr))])
-    print(np.array_str(dots, precision=1, suppress_small=True))
-
-
 def plot_int_vs_diag(system, t_vec):
     """Plots the norm-difference between using diagonalization and integration.
     """
@@ -207,31 +210,57 @@ def plot_int_vs_diag(system, t_vec):
         L = system.kern
         return L@y
 
-    res_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
+    res_int = solve_ivp(rhs, (0, t_vec[-1]), system.rho_0, t_eval=t_vec).y.T
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
     fig, ax = plt.subplots(1, 1)
     ax.plot(t_vec, norms)
-    ax.set_xlabel('t')
-    ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$')
+    fs = 13
+    ax.set_xlabel(r'$t$', fontsize=fs)
+    ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$', fontsize=fs)
+    # plt.savefig('../intvssteady.png', dpi=400)
     plt.show()
 
+
+def print_trace_evo(system, t_vec):
+    res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
+    traces = [np.trace(system._vector2matrix(res_diag[i, :]))
+              for i in range(len(t_vec))]
+    print(np.array_str(np.array(traces), precision=4, suppress_small=True))
+
+
+def trace_distance(vec1, vec2):
+    pass
+
+
+def bmatrix(a):
+    """Returns a LaTeX bmatrix
+
+    :a: numpy array
+    :returns: LaTeX bmatrix as a string
+    """
+    if len(a.shape) > 2:
+        raise ValueError('bmatrix can at most display two dimensions')
+    lines = str(a).replace('[', '').replace(']', '').splitlines()
+    rv = [r'\begin{bmatrix}']
+    rv += ['  ' + ' & '.join(line.split()) + r'\\' for line in lines]
+    rv += [r'\end{bmatrix}']
+    return '\n'.join(rv)
 
 
 if __name__ == '__main__':
     gamma = 1
-    # delta_eps = gamma*0.29587174348697
-    delta_eps = gamma*0.2
+    delta_eps = gamma*0.29587174348697
+    # delta_eps = gamma*0.5
     delta_t = gamma*1e-6
-    v_bias = 200*gamma
+    v_bias = 30*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
-    rho_0 = np.array([0.3, 0.2, 0.2, 0.3, 0.1, 0.1], dtype=complex)
+    rho_0 = np.array([0.3, 0.2, 0.2, 0.3, 0.2, -0.2], dtype=complex)
     parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec, rho_0,
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
-    lamb_shift = True
-    parallel_dots.solve(lamb_shift=lamb_shift)
-    delta_epsilons = np.linspace(0.2, 1, 20)
-    eigs = calc_tuning(delta_epsilons, parallel_dots, lamb_shift)
-    plot_tuning(eigs, delta_epsilons)
+    parallel_dots.solve(lamb_shift=False)
+    tvec = np.linspace(0, 10, 20)
+    print_trace_evo(parallel_dots, tvec)
+

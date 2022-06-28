@@ -68,7 +68,7 @@ class ParallelDots(Builder):
         self.make_kern_copy = True
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
-              sol_eig=True, sort=True, lamb_shift=True, *args, **kwargs):
+              sol_eig=True, sort=True, lamb_shift=False, *args, **kwargs):
         """Solves the master equation and sets the kernel matrix.
 
         Extends solve() from Builder (approach) by also creating eigenvectors,
@@ -87,6 +87,8 @@ class ParallelDots(Builder):
         self.appr.solve(qdq=qdq, rotateq=rotateq, masterq=masterq,
                         currentq=currentq, *args, **kwargs)
 
+        # Perhaps this doesn't work... since all other calculations
+        # are based on non Lamb-shift.
         if lamb_shift:
             self.kern = myLindblad.calc_Lindblad_kernel(self)
 
@@ -136,6 +138,7 @@ class ParallelDots(Builder):
         """
 
         # single particle hamiltonian, 0: upper, 1: lower
+        # Different things happen if one changes +->-??
         hsingle = {(0, 0): -self.vgate - delta_eps,
                    (1, 1): -self.vgate + delta_eps}
         return hsingle
@@ -197,7 +200,37 @@ class ParallelDots(Builder):
         # returns empty list if no exceptional point
         return potential_indices
 
-    def dens_matrix_evo(self, t):
+    def _vector2matrix(self, vec):
+        size = len(vec) - 2
+        matrix = np.zeros((size, size), dtype=complex)
+        for i in range(size):
+            matrix[i, i] = vec[i]
+
+        matrix[1, 2] = vec[-2] + vec[-1]*1j
+        matrix[2, 1] = matrix[1, 2].conjugate()
+        return matrix
+
+    def _scalar_prod(self, vec1, vec2):
+        mat1 = self._vector2matrix(vec1)
+        mat2 = self._vector2matrix(vec2)
+        return np.trace(mat1.conjugate().T @ mat2)
+
+    def print_orth_matrix(self, scalar_prod):
+        """Prints a matrix of scalar products between left and right eigenvectors.
+        """
+        # is the vectorized scalar product wl.H*wr?
+        wr = self.r_eigvecs
+        wl = self.l_eigvecs
+        if scalar_prod == 'vdot':
+            dot_func = np.vdot
+        else:
+            dot_func = self._scalar_prod
+        dots = np.array([[dot_func(wl[:, i], wr[:, j]) for i in range(len(wr))]
+                        for j in range(len(wr))])
+        numpy_string = np.array_str(dots, precision=1, suppress_small=True)
+        print(numpy_string)
+
+    def dens_matrix_evo(self, t, scalar_prod='vdot'):
         """Calculates the density matrix at time t.
 
         Parameters:
@@ -215,15 +248,24 @@ class ParallelDots(Builder):
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
         size = len(self.eigvals)
 
+        if scalar_prod == 'vdot':
+            dot_func = np.vdot
+        elif scalar_prod == 'trace':
+            dot_func = self._scalar_prod
+
         # inner products of left eigenvectors and rho_0 to get all c_i's
-        constants = np.array([np.vdot(l_eigvecs[:, i], rho_0) for i in
-                             range(size)])
+        constants = np.array([dot_func(l_eigvecs[:, i], rho_0)
+                              for i in range(size)])
+        # normalization constants so that <l_i|r_j> = delta_ij
+        norm_consts = np.array([dot_func(l_eigvecs[:, i], r_eigvecs[:, i]) for
+                                i in range(size)])
+        constants /= norm_consts
         # multiply with all exp(lambda_i*t)
         constants_exp = constants * np.exp(eigvals*t)
 
         # multiply column i in r_eigvecs with c_i*exp(lambda_i*t)
         summation_matrix = constants_exp * r_eigvecs
-
         # do the summation over all column vectors
         dens_evol = np.sum(summation_matrix, axis=1)
+
         return dens_evol
