@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
+from exceptional_point import ExceptionalPoint
 
 
 def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
@@ -138,7 +139,6 @@ def calc_tuning(delta_epsilons, system, lamb_shift):
         system.change_delta_eps(delta_e)
         system.solve(lamb_shift=lamb_shift)  # masterq=False??
         eigs[i, :] = system.eigvals
-
     return eigs
 
 
@@ -217,7 +217,7 @@ def plot_int_vs_diag(system, t_vec):
     fs = 13
     ax.set_xlabel(r'$t$', fontsize=fs)
     ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$', fontsize=fs)
-    # plt.savefig('../intvssteady.png', dpi=400)
+    plt.savefig('../intvsdiag.png', dpi=400, bbox_inches='tight')
     plt.show()
 
 
@@ -249,9 +249,9 @@ def bmatrix(a):
 
 if __name__ == '__main__':
     gamma = 1
-    delta_eps = gamma*0.29587174348697
+    delta_eps = gamma*0.29587174348697  # for lindblad no lamb shift
     # delta_eps = gamma*0.5
-    delta_t = gamma*1e-6
+    delta_t = gamma*1e-3
     v_bias = 30*gamma
 
     #           upper->L, upper->R, lower->L, lower->R
@@ -260,7 +260,8 @@ if __name__ == '__main__':
     parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec, rho_0,
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
-    parallel_dots.solve(lamb_shift=False)
-    tvec = np.linspace(0, 10, 20)
-    print_trace_evo(parallel_dots, tvec)
-
+    l_shift = False
+    parallel_dots.solve(lamb_shift=l_shift)
+    indices = parallel_dots.check_if_exc_point()
+    ep = ExceptionalPoint(parallel_dots)
+    ep.calc_gen_eigvecs()

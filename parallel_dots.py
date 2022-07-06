@@ -68,7 +68,8 @@ class ParallelDots(Builder):
         self.make_kern_copy = True
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
-              sol_eig=True, sort=True, lamb_shift=False, *args, **kwargs):
+              sol_eig=True, sort=True, lamb_shift=False, exc_point=False,
+              *args, **kwargs):
         """Solves the master equation and sets the kernel matrix.
 
         Extends solve() from Builder (approach) by also creating eigenvectors,
@@ -96,18 +97,13 @@ class ParallelDots(Builder):
             self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
                                                                   left=True,
                                                                   right=True)
-            if sort:
-                indices = np.argsort(self.eigvals)
+            if sort:  # in reverse order
+                indices = np.argsort(self.eigvals)[::-1]
                 self.eigvals = self.eigvals[indices]
                 self.l_eigvecs = self.l_eigvecs[:, indices]
                 self.r_eigvecs = self.r_eigvecs[:, indices]
 
-        for i in range(len(self.eigvals)):
-            scalar_prod = np.vdot(self.l_eigvecs[:, i], self.r_eigvecs[:, i])
-            if scalar_prod != 1:
-                # normalize them somehow? Seems like they are orthogonal,
-                # but l_i.H dot r_i does not give 1?
-                pass
+
 
     def change_delta_eps(self, delta_eps):
         """Changes delta_eps of the system
@@ -215,53 +211,43 @@ class ParallelDots(Builder):
         mat2 = self._vector2matrix(vec2)
         return np.trace(mat1.conjugate().T @ mat2)
 
-    def print_orth_matrix(self, scalar_prod):
+    def print_orth_matrix(self):
         """Prints a matrix of scalar products between left and right eigenvectors.
         """
-        # is the vectorized scalar product wl.H*wr?
         wr = self.r_eigvecs
         wl = self.l_eigvecs
-        if scalar_prod == 'vdot':
-            dot_func = np.vdot
-        else:
-            dot_func = self._scalar_prod
-        dots = np.array([[dot_func(wl[:, i], wr[:, j]) for i in range(len(wr))]
+        dots = np.array([[np.vdot(wl[:, i], wr[:, j]) for i in range(len(wr))]
                         for j in range(len(wr))])
         numpy_string = np.array_str(dots, precision=1, suppress_small=True)
         print(numpy_string)
 
-    def dens_matrix_evo(self, t, scalar_prod='vdot'):
+    def dens_matrix_evo(self, time):
         """Calculates the density matrix at time t.
 
         Parameters:
-        t -- time
+        time -- point in time at which rho is evaluated
 
         Returns:
         dens_evol -- the vectorized density matrix at time t in the format
                      [rho_aa, rho_bb, rho_cc, rho_dd, re(rho_bc), im(rho_bc)]
 
         """
-        # something weird with the left and right eigenvectors I think.
-        # not orthonormal
         rho_0 = self.rho_0
         eigvals = self.eigvals
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
         size = len(self.eigvals)
 
-        if scalar_prod == 'vdot':
-            dot_func = np.vdot
-        elif scalar_prod == 'trace':
-            dot_func = self._scalar_prod
+        # normalize left eigenvectors such that l_i * r_j = delta_ij
+        for i in range(len(eigvals)):
+            scalar_prod = np.vdot(l_eigvecs[:, i], r_eigvecs[:, i])
+            l_eigvecs[:, i] /= scalar_prod
 
         # inner products of left eigenvectors and rho_0 to get all c_i's
-        constants = np.array([dot_func(l_eigvecs[:, i], rho_0)
+        constants = np.array([np.vdot(l_eigvecs[:, i], rho_0)
                               for i in range(size)])
-        # normalization constants so that <l_i|r_j> = delta_ij
-        norm_consts = np.array([dot_func(l_eigvecs[:, i], r_eigvecs[:, i]) for
-                                i in range(size)])
-        constants /= norm_consts
+
         # multiply with all exp(lambda_i*t)
-        constants_exp = constants * np.exp(eigvals*t)
+        constants_exp = constants * np.exp(eigvals*time)
 
         # multiply column i in r_eigvecs with c_i*exp(lambda_i*t)
         summation_matrix = constants_exp * r_eigvecs
@@ -269,3 +255,12 @@ class ParallelDots(Builder):
         dens_evol = np.sum(summation_matrix, axis=1)
 
         return dens_evol
+
+    def dens_matrix_evo_exc_point(self, time, indices):
+        rho_0 = self.rho_0
+        eigvals = self.eigvals
+        l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
+        
+
+  
+  
