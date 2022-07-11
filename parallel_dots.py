@@ -4,6 +4,7 @@ import numpy as np
 from scipy.linalg import eig as sc_eig
 from qmeq.builder.builder import Builder
 import myLindblad
+# import exceptional_point
 
 
 class ParallelDots(Builder):
@@ -11,7 +12,7 @@ class ParallelDots(Builder):
     """
 
     def __init__(self, gamma, delta_eps, delta_t,
-                 d_vec, rho_0, kerntype, parameters='stephanie', v_bias=None):
+                 d_vec, kerntype, parameters='stephanie', v_bias=None):
         """Initiates the parallel dot system by creating a Builder object.
 
         Arguments:
@@ -32,7 +33,6 @@ class ParallelDots(Builder):
         self.eigvals = None
         self.r_eigvecs = None
         self.l_eigvecs = None
-        self.rho_0 = rho_0
 
         if parameters == 'stephanie':
             vbias = 30*gamma
@@ -68,7 +68,7 @@ class ParallelDots(Builder):
         self.make_kern_copy = True
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
-              sol_eig=True, sort=True, lamb_shift=False, exc_point=False,
+              sol_eig=True, sort=True, lamb_shift=False,
               *args, **kwargs):
         """Solves the master equation and sets the kernel matrix.
 
@@ -97,6 +97,12 @@ class ParallelDots(Builder):
             self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
                                                                   left=True,
                                                                   right=True)
+            # normalize eigvecs such that l_i * r_j = delta_ij
+            # need to divide by sc_product*
+            for i in range(len(self.eigvals)):
+                sc_prod = np.vdot(self.l_eigvecs[:, i], self.r_eigvecs[:, i])
+                self.l_eigvecs[:, i] /= sc_prod.conj()
+
             if sort:  # in reverse order
                 indices = np.argsort(self.eigvals)[::-1]
                 self.eigvals = self.eigvals[indices]
@@ -204,26 +210,23 @@ class ParallelDots(Builder):
         numpy_string = np.array_str(dots, precision=1, suppress_small=True)
         print(numpy_string)
 
-    def dens_matrix_evo(self, time):
+    def dens_matrix_evo(self, time, rho_0):
         """Calculates the density matrix at time t.
 
         Parameters:
         time -- point in time at which rho is evaluated
+        rho_0 -- inital value of density matrix
 
         Returns:
         dens_evol -- the vectorized density matrix at time t in the format
                      [rho_aa, rho_bb, rho_cc, rho_dd, re(rho_bc), im(rho_bc)]
 
         """
-        rho_0 = self.rho_0
+        if sum(rho_0[:4]) - 1 > 1e-5:
+            raise Exception('Initial value must have trace 1')
         eigvals = self.eigvals
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
         size = len(self.eigvals)
-
-        # normalize left eigenvectors such that l_i * r_j = delta_ij
-        for i in range(len(eigvals)):
-            scalar_prod = np.vdot(l_eigvecs[:, i], r_eigvecs[:, i])
-            l_eigvecs[:, i] /= scalar_prod
 
         # inner products of left eigenvectors and rho_0 to get all c_i's
         constants = np.array([np.vdot(l_eigvecs[:, i], rho_0)
@@ -239,11 +242,31 @@ class ParallelDots(Builder):
 
         return dens_evol
 
-    def dens_matrix_evo_exc_point(self, time, indices):
-        rho_0 = self.rho_0
+    def dens_matrix_evo_ep(self, time, rho_0, exc_point):
+        # if sum(rho_0[:4]) - 1 > 1e-5 or rho_0 > 1e-5:
+        #     raise Exception('Initial value must be Hermitian and have trace 1')
         eigvals = self.eigvals
-        l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
-        
+        size = len(eigvals)
+        R = exc_point.R
+        if exc_point.consts is None:
+            exc_point.consts = exc_point.calc_constants(rho_0)
+        consts = exc_point.consts
+        ep_ind = list(exc_point.indices)
+        ep_eigval = eigvals[ep_ind[0]]
 
-  
-  
+        # find indices not in ep
+        normal_ind = np.arange(size)
+        normal_ind = np.setdiff1d(normal_ind, ep_ind)
+
+        # do the calculation for non-ep terms
+        consts_exp = consts[normal_ind] * np.exp(eigvals[normal_ind] * time)
+        summation_matrix = consts_exp * R[:, normal_ind]
+        dens_evol = np.sum(summation_matrix, axis=1)
+
+        # ep terms
+        ep_term1 = (consts[ep_ind[0]] + consts[ep_ind[1]] * time) * \
+            np.exp(ep_eigval*time) * R[:, ep_ind[0]]
+        ep_term2 = consts[ep_ind[1]] * R[:, ep_ind[1]] * np.exp(ep_eigval*time)
+
+        dens_evol += ep_term1 + ep_term2
+        return dens_evol

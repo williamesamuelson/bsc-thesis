@@ -200,32 +200,41 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
     return delta_epsilons[min_mag_index]
 
 
-def plot_int_vs_diag(system, t_vec):
+def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
     """Plots the norm-difference between using diagonalization and integration.
     """
     # Trace distance of the vectorized matrices?
-    res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
+    if ep is None:
+        res_diag = np.array([list(system.dens_matrix_evo(t, rho_0))
+                             for t in t_vec])
+    else:
+        res_diag = np.array([list(system.dens_matrix_evo_ep(t, rho_0, ep))
+                             for t in t_vec])
 
     def rhs(t, y):
         L = system.kern
         return L@y
 
-    res_int = solve_ivp(rhs, (0, t_vec[-1]), system.rho_0, t_eval=t_vec).y.T
+    res_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
     fig, ax = plt.subplots(1, 1)
     ax.plot(t_vec, norms)
     fs = 13
     ax.set_xlabel(r'$t$', fontsize=fs)
     ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$', fontsize=fs)
-    plt.savefig('../intvsdiag.png', dpi=400, bbox_inches='tight')
+    # plt.savefig('../intvsjordan_sFalse10s.png', dpi=400, bbox_inches='tight')
     plt.show()
 
 
-def print_trace_evo(system, t_vec):
-    res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
-    traces = [np.trace(system._vector2matrix(res_diag[i, :]))
-              for i in range(len(t_vec))]
-    print(np.array_str(np.array(traces), precision=4, suppress_small=True))
+def print_trace_evo(system, t_vec, ep=None):
+    if ep is None:
+        res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
+    else:
+        res_diag = np.array([list(system.dens_matrix_evo_ep(t, ep))
+                             for t in t_vec])
+
+    traces = [sum(res_diag[t, 0:4]) for t in range(len(t_vec))]
+    print(np.array_str(np.array(traces), precision=6, suppress_small=True))
 
 
 if __name__ == '__main__':
@@ -237,11 +246,12 @@ if __name__ == '__main__':
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
-    rho_0 = np.array([0.3, 0.2, 0.2, 0.3, 0.2, -0.2], dtype=complex)
-    parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec, rho_0,
+    parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec,
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=v_bias)
     l_shift = False
     parallel_dots.solve(lamb_shift=l_shift)
-    indices = parallel_dots.check_if_exc_point()
-    ep = ExceptionalPoint(parallel_dots, subspace=True)
+    ep = ExceptionalPoint(parallel_dots, subspace=False)
+    rho_0 = ep.R[:, 0] + 0.3*ep.R[:, 2] + 0.3*ep.R[:, 2]
+    t_vec = np.linspace(0, 5, 100)
+    plot_int_vs_diag(parallel_dots, t_vec, rho_0, ep)

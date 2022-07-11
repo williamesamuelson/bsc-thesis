@@ -15,7 +15,7 @@ class ExceptionalPoint():
 
         self.L, self.R = self.calc_gen_eigvecs(sys.l_eigvecs, sys.r_eigvecs,
                                                subspace, sys.kern)
-        self.constants = self.calc_constants(sys.rho_0)
+        self.consts = None
 
     def calc_gen_eigvecs(self, l_eigvecs, r_eigvecs, subspace, kern):
         size = len(self.eigvals)
@@ -25,44 +25,43 @@ class ExceptionalPoint():
         L = l_eigvecs.astype('complex')
 
         rho5 = R[:, ind1]
-        sigma_prime = L[:, ind1]
+        sigma_prime = L[:, ind2]
         eig_id = self.eigvals[ind1]*np.identity(size)
         rho_prime = np.linalg.pinv(kern - eig_id) @ rho5
         sigma5 = np.linalg.pinv((kern - eig_id).conj().T) @ sigma_prime
+        R[:, ind2] = rho_prime
+        L[:, ind1] = sigma5
 
-        L = L.conj().T
+        # L = L.conj().T
 
         if subspace:
 
-            L_subspace = np.array([sigma5.conj(), sigma_prime.conj()])
+            L_subspace = np.array([sigma5, sigma_prime]).T
             R_subspace = np.array([rho5, rho_prime]).T
-            M = L_subspace @ R_subspace
+            M = L_subspace.conj().T @ R_subspace
             Mp, Ml, Mu = lu(M)
-            Lprime = np.linalg.solve(Ml, L_subspace)
+            Lprime = np.linalg.solve(Ml, L_subspace.conj().T).conj().T
             # does this work?
             Rprime = np.linalg.solve(Mu.conj().T, R_subspace.conj().T).conj().T
             R[:, ind1] = Rprime[:, 0]
             R[:, ind2] = Rprime[:, 1]
-            L[ind1, :] = Lprime[0, :]
-            L[ind2, :] = Lprime[1, :]
+            L[:, ind1] = Lprime[:, 0]
+            L[:, ind2] = Lprime[:, 1]
         else:
-            M = L @ R
+            M = L.conj().T @ R
             Mp, Ml, Mu = lu(M)
-            Lprime = np.linalg.solve(Ml, L)
+            Lprime = np.linalg.solve(Ml, L.conj().T).conj().T
             Rprime = np.linalg.solve(Mu.conj().T, R.conj().T).conj().T
-            R[:, ind1] = Rprime[:, ind1]
-            R[:, ind2] = Rprime[:, ind2]
-            L[ind1, :] = Lprime[ind1, :]
-            L[ind2, :] = Lprime[ind2, :]
+            R = Rprime
+            L = Lprime
 
         for i in range(size):
-            L[i, :] /= np.dot(L[i, :], R[:, i])
+            L[:, i] /= np.vdot(L[:, i], R[:, i]).conj()
 
-        return L.conj().T, R
+        return L, R
 
     def calc_constants(self, rho_0):
         size = len(rho_0)
-        # find indices not at exc. point
         constants = np.array([np.vdot(self.L[:, i], rho_0)
                               for i in range(size)])
 

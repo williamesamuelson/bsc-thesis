@@ -90,6 +90,8 @@ def calc_Lindblad_kernel(system, swap=False):
 
     # build Lindblad operators
     #############################
+    # move outside and insert parameters instead so that I can use it for
+    # current
     def build_jump_operators():
 
         # dot 1 -------------------------
@@ -400,8 +402,8 @@ def calc_Lindblad_kernel(system, swap=False):
     mykern = Utrans @ mykern @ np.linalg.inv(Utrans)
     
     # compare with qmeq before adding lambshift
-    qmeq_kern = get_qmeq_kernel()
-    # qmeq_kern = system.kern
+    # qmeq_kern = get_qmeq_kernel()
+    qmeq_kern = system.kern
     if np.allclose(np.real(mykern),qmeq_kern) == False:
         print('Warning: qmeq and constructed Lindbladian not the same -- change state ordering')
         #print(qmeq_kern - mykern)
