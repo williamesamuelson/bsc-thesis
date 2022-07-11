@@ -228,25 +228,6 @@ def print_trace_evo(system, t_vec):
     print(np.array_str(np.array(traces), precision=4, suppress_small=True))
 
 
-def trace_distance(vec1, vec2):
-    pass
-
-
-def bmatrix(a):
-    """Returns a LaTeX bmatrix
-
-    :a: numpy array
-    :returns: LaTeX bmatrix as a string
-    """
-    if len(a.shape) > 2:
-        raise ValueError('bmatrix can at most display two dimensions')
-    lines = str(a).replace('[', '').replace(']', '').splitlines()
-    rv = [r'\begin{bmatrix}']
-    rv += ['  ' + ' & '.join(line.split()) + r'\\' for line in lines]
-    rv += [r'\end{bmatrix}']
-    return '\n'.join(rv)
-
-
 if __name__ == '__main__':
     gamma = 1
     delta_eps = gamma*0.29587174348697  # for lindblad no lamb shift
@@ -263,5 +244,4 @@ if __name__ == '__main__':
     l_shift = False
     parallel_dots.solve(lamb_shift=l_shift)
     indices = parallel_dots.check_if_exc_point()
-    ep = ExceptionalPoint(parallel_dots)
-    ep.calc_gen_eigvecs()
+    ep = ExceptionalPoint(parallel_dots, subspace=True)

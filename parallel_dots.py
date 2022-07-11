@@ -103,8 +103,6 @@ class ParallelDots(Builder):
                 self.l_eigvecs = self.l_eigvecs[:, indices]
                 self.r_eigvecs = self.r_eigvecs[:, indices]
 
-
-
     def change_delta_eps(self, delta_eps):
         """Changes delta_eps of the system
 
@@ -195,21 +193,6 @@ class ParallelDots(Builder):
 
         # returns empty list if no exceptional point
         return potential_indices
-
-    def _vector2matrix(self, vec):
-        size = len(vec) - 2
-        matrix = np.zeros((size, size), dtype=complex)
-        for i in range(size):
-            matrix[i, i] = vec[i]
-
-        matrix[1, 2] = vec[-2] + vec[-1]*1j
-        matrix[2, 1] = matrix[1, 2].conjugate()
-        return matrix
-
-    def _scalar_prod(self, vec1, vec2):
-        mat1 = self._vector2matrix(vec1)
-        mat2 = self._vector2matrix(vec2)
-        return np.trace(mat1.conjugate().T @ mat2)
 
     def print_orth_matrix(self):
         """Prints a matrix of scalar products between left and right eigenvectors.
