@@ -32,8 +32,6 @@ class ExceptionalPoint():
         R[:, ind2] = rho_prime
         L[:, ind1] = sigma5
 
-        # L = L.conj().T
-
         if subspace:
 
             L_subspace = np.array([sigma5, sigma_prime]).T
@@ -56,6 +54,10 @@ class ExceptionalPoint():
             L = Lprime
 
         for i in range(size):
+            # normalize R so that all vectors are of similar magnitude
+            norm = np.linalg.norm(R[:, i])
+            R[:, i] /= norm
+            # normalize L s.t L.conj()T@R = I
             L[:, i] /= np.vdot(L[:, i], R[:, i]).conj()
 
         return L, R

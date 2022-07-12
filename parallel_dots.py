@@ -1,9 +1,11 @@
 """Module containing ParallelDots class extending Builder"""
 
+import warnings
 import numpy as np
 from scipy.linalg import eig as sc_eig
 from qmeq.builder.builder import Builder
 import myLindblad
+from functions import vector2matrix
 # import exceptional_point
 
 
@@ -66,6 +68,7 @@ class ParallelDots(Builder):
                          mulst, tlst, dband,
                          kerntype=kerntype, itype=1)
         self.make_kern_copy = True
+        self.jump_operators = myLindblad.build_jump_operators(self)
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
               sol_eig=True, sort=True, lamb_shift=False,
@@ -97,17 +100,22 @@ class ParallelDots(Builder):
             self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
                                                                   left=True,
                                                                   right=True)
-            # normalize eigvecs such that l_i * r_j = delta_ij
-            # need to divide by sc_product*
-            for i in range(len(self.eigvals)):
-                sc_prod = np.vdot(self.l_eigvecs[:, i], self.r_eigvecs[:, i])
-                self.l_eigvecs[:, i] /= sc_prod.conj()
-
             if sort:  # in reverse order
                 indices = np.argsort(self.eigvals)[::-1]
                 self.eigvals = self.eigvals[indices]
                 self.l_eigvecs = self.l_eigvecs[:, indices]
                 self.r_eigvecs = self.r_eigvecs[:, indices]
+
+            # normalize eigvecs such that l_i * r_j = delta_ij
+            # need to divide by sc_product.conj()
+            # do not divide vectors at ep, since then l_i * r_i -> 0
+            ep_indices = self.check_if_exc_point()
+            normal_indices = np.setdiff1d(np.arange(len(self.eigvals)),
+                                          ep_indices)
+            for i in normal_indices:
+                sc_prod = np.vdot(self.l_eigvecs[:, i],
+                                  self.r_eigvecs[:, i])
+                self.l_eigvecs[:, i] /= sc_prod.conj()
 
     def change_delta_eps(self, delta_eps):
         """Changes delta_eps of the system
@@ -200,18 +208,8 @@ class ParallelDots(Builder):
         # returns empty list if no exceptional point
         return potential_indices
 
-    def print_orth_matrix(self):
-        """Prints a matrix of scalar products between left and right eigenvectors.
-        """
-        wr = self.r_eigvecs
-        wl = self.l_eigvecs
-        dots = np.array([[np.vdot(wl[:, i], wr[:, j]) for i in range(len(wr))]
-                        for j in range(len(wr))])
-        numpy_string = np.array_str(dots, precision=1, suppress_small=True)
-        print(numpy_string)
-
     def dens_matrix_evo(self, time, rho_0):
-        """Calculates the density matrix at time t.
+        """Calculates the density matrix at time t at non-EP.
 
         Parameters:
         time -- point in time at which rho is evaluated
@@ -224,6 +222,11 @@ class ParallelDots(Builder):
         """
         if sum(rho_0[:4]) - 1 > 1e-5:
             raise Exception('Initial value must have trace 1')
+
+        if self.check_if_exc_point():
+            warnings.warn("System at exceptional point, use dens_matrix_evo_ep\
+                           instead.")
+
         eigvals = self.eigvals
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
         size = len(self.eigvals)
@@ -243,8 +246,8 @@ class ParallelDots(Builder):
         return dens_evol
 
     def dens_matrix_evo_ep(self, time, rho_0, exc_point):
-        # if sum(rho_0[:4]) - 1 > 1e-5 or rho_0 > 1e-5:
-        #     raise Exception('Initial value must be Hermitian and have trace 1')
+        if sum(rho_0[:4]) - 1 > 1e-5:
+            raise Exception('Initial value must have trace 1')
         eigvals = self.eigvals
         size = len(eigvals)
         R = exc_point.R
@@ -270,3 +273,29 @@ class ParallelDots(Builder):
 
         dens_evol += ep_term1 + ep_term2
         return dens_evol
+
+    def calc_current(self, rho, direction):
+        L_jump = self.jump_operators
+
+        if direction == 'left':
+            ind1 = 0
+            ind2 = 1
+        elif direction == 'right':
+            ind1 = 2
+            ind2 = 3
+        else:
+            raise Exception(direction + ' is not a valid direction')
+
+        rho_matrix = vector2matrix(rho)
+
+        term1_mat = L_jump[ind1].conj().T @ L_jump[ind1] @ rho_matrix
+        term2_mat = L_jump[ind2].conj().T @ L_jump[ind2] @ rho_matrix
+        current = np.trace(term1_mat) - np.trace(term2_mat)
+        return current
+
+    def calc_ss_dens_matrix(self, rho_0):
+        return np.vdot(self.l_eigvecs[:, 0], rho_0)*self.r_eigvecs[:, 0]
+
+    def calc_ss_current(self, rho_0, direction):
+        ss_rho = self.calc_ss_dens_matrix(rho_0)
+        return self.calc_current(ss_rho, direction)

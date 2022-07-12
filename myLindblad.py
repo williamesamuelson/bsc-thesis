@@ -6,6 +6,7 @@ Author: Stephanie Matern
 import numpy as np
 from scipy.special import digamma
 import qmeq
+from functions import vector2matrix
 
 
 # Fermi Dirac distribtuion
@@ -58,6 +59,106 @@ def vec_dissipator(matrix1, matrix2, dm=0):
     return res
 
 
+def build_jump_operators(system):
+    eps1, eps2 = list(system.hsingle.values())
+    hop_arr = list(system.tleads.values())
+    muL, muR = list(system.mulst)
+    TL, TR = list(system.tlst)
+    Uval = list(system.coulomb.values())[0]
+
+    t1L = hop_arr[0]
+    t2L = hop_arr[2]
+
+    t1R = hop_arr[1]
+    t2R = hop_arr[3]
+
+    # dot 1 -------------------------
+    L1 = np.zeros((4, 4))
+    L1[1, 0] = np.sqrt(FermiDirac(eps1, muL, TL))
+    L1[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
+
+    L2 = np.zeros((4, 4))
+    L2[0, 1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
+    L2[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
+
+    L3 = np.zeros((4, 4))
+    L3[1, 0] = np.sqrt(FermiDirac(eps1, muR, TR))
+    L3[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
+
+    L4 = np.zeros((4, 4))
+    L4[0, 1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
+    L4[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
+    # --------------------------------
+
+    # dot 2 -------------------------
+    L5 = np.zeros((4,4))
+    L5[2,0] = np.sqrt(FermiDirac(eps2, muL, TL))
+    L5[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muL, TL))
+
+    L6 = np.zeros((4,4))
+    L6[0,2] = np.sqrt(1 - FermiDirac(eps2, muL, TL))
+    L6[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muL, TL))
+
+    L7 = np.zeros((4,4))
+    L7[2,0] = np.sqrt(FermiDirac(eps2, muR, TR))
+    L7[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muR, TR))
+
+    L8 = np.zeros((4,4))
+    L8[0,2] = np.sqrt(1 - FermiDirac(eps2, muR, TR))
+    L8[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muR, TR))
+    #--------------------------------
+
+    # combine processes
+
+    La = t1L * L1 + t2L * L5
+    Lb = t1L * L2 + t2L * L6
+    Lc = t1R * L3 + t2R * L7
+    Ld = t1R * L4 + t2R * L8
+
+    # write all jump operators in tensor
+
+    L_tensor = np.zeros((4,4,4))
+
+    L_tensor[0,:,:] = La
+    L_tensor[1,:,:] = Lb
+    L_tensor[2,:,:] = Lc
+    L_tensor[3,:,:] = Ld
+
+    return L_tensor
+    #############################
+
+
+def calc_current(L_jump, dm, direction):
+
+    # input: Jump operators and vectorised density matrix
+    if direction == 'left':
+        ind1 = 0
+        ind2 = 1
+    elif direction == 'right':
+        ind1 = 2
+        ind2 = 3
+    else:
+        raise Exception('Not a valid direction')
+
+    dm_matrix = vector2matrix(dm)
+
+    term1_mat = L_jump[ind1].conj().T @ L_jump[ind1] @ dm_matrix
+    term2_mat = L_jump[ind2].conj().T @ L_jump[ind2] @ dm_matrix
+    current = np.trace(term1_mat) - np.trace(term2_mat)
+    return current
+
+
+def current_steph(L_jump, dm, direction):
+
+    dm_matrix = vector2matrix(dm)
+    if direction == 'left':
+        current = (np.trace(np.dot(np.transpose(np.conjugate(L_jump[0])), np.dot(L_jump[0], dm_matrix))) - np.trace(np.dot(np.transpose(np.conjugate(L_jump[1])), np.dot(L_jump[1], dm_matrix))))
+    else:
+        current = (-np.trace(np.dot(np.transpose(np.conjugate(L_jump[3])), np.dot(L_jump[3], dm_matrix))) + np.trace(np.dot(np.transpose(np.conjugate(L_jump[2])), np.dot(L_jump[2], dm_matrix))))
+
+    return current
+
+
 def calc_Lindblad_kernel(system, swap=False):
 
     # -------------------------
@@ -92,77 +193,77 @@ def calc_Lindblad_kernel(system, swap=False):
     #############################
     # move outside and insert parameters instead so that I can use it for
     # current
-    def build_jump_operators():
+    # def build_jump_operators():
 
-        # dot 1 -------------------------
-        L1 = np.zeros((4, 4))
-        L1[1, 0] = np.sqrt(FermiDirac(eps1, muL, TL))
-        L1[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
+    #     # dot 1 -------------------------
+    #     L1 = np.zeros((4, 4))
+    #     L1[1, 0] = np.sqrt(FermiDirac(eps1, muL, TL))
+    #     L1[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
 
-        L2 = np.zeros((4, 4))
-        L2[0, 1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
-        L2[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
+    #     L2 = np.zeros((4, 4))
+    #     L2[0, 1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
+    #     L2[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
 
-        L3 = np.zeros((4, 4))
-        L3[1, 0] = np.sqrt(FermiDirac(eps1, muR, TR))
-        L3[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
+    #     L3 = np.zeros((4, 4))
+    #     L3[1, 0] = np.sqrt(FermiDirac(eps1, muR, TR))
+    #     L3[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
 
-        L4 = np.zeros((4, 4))
-        L4[0, 1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
-        L4[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
-        # --------------------------------
+    #     L4 = np.zeros((4, 4))
+    #     L4[0, 1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
+    #     L4[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
+    #     # --------------------------------
 
-        # dot 2 -------------------------
-        L5 = np.zeros((4,4))
-        L5[2,0] = np.sqrt(FermiDirac(eps2, muL, TL))
-        L5[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muL, TL))
+    #     # dot 2 -------------------------
+    #     L5 = np.zeros((4,4))
+    #     L5[2,0] = np.sqrt(FermiDirac(eps2, muL, TL))
+    #     L5[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muL, TL))
 
-        L6 = np.zeros((4,4))
-        L6[0,2] = np.sqrt(1 - FermiDirac(eps2, muL, TL))
-        L6[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muL, TL))
+    #     L6 = np.zeros((4,4))
+    #     L6[0,2] = np.sqrt(1 - FermiDirac(eps2, muL, TL))
+    #     L6[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muL, TL))
 
-        L7 = np.zeros((4,4))
-        L7[2,0] = np.sqrt(FermiDirac(eps2, muR, TR))
-        L7[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muR, TR))
+    #     L7 = np.zeros((4,4))
+    #     L7[2,0] = np.sqrt(FermiDirac(eps2, muR, TR))
+    #     L7[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muR, TR))
 
-        L8 = np.zeros((4,4))
-        L8[0,2] = np.sqrt(1 - FermiDirac(eps2, muR, TR))
-        L8[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muR, TR))
-        #--------------------------------
+    #     L8 = np.zeros((4,4))
+    #     L8[0,2] = np.sqrt(1 - FermiDirac(eps2, muR, TR))
+    #     L8[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muR, TR))
+    #     #--------------------------------
 
-        # combine processes
+    #     # combine processes
 
-        La = t1L * L1 + t2L * L5
-        Lb = t1L * L2 + t2L * L6
-        Lc = t1R * L3 + t2R * L7
-        Ld = t1R * L4 + t2R * L8
+    #     La = t1L * L1 + t2L * L5
+    #     Lb = t1L * L2 + t2L * L6
+    #     Lc = t1R * L3 + t2R * L7
+    #     Ld = t1R * L4 + t2R * L8
 
-        # write all jump operators in tensor
+    #     # write all jump operators in tensor
 
-        L_tensor = np.zeros((4,4,4))
+    #     L_tensor = np.zeros((4,4,4))
 
-        L_tensor[0,:,:] = La
-        L_tensor[1,:,:] = Lb
-        L_tensor[2,:,:] = Lc
-        L_tensor[3,:,:] = Ld
+    #     L_tensor[0,:,:] = La
+    #     L_tensor[1,:,:] = Lb
+    #     L_tensor[2,:,:] = Lc
+    #     L_tensor[3,:,:] = Ld
 
-        return L_tensor
+    #     return L_tensor
     #############################
 
     # compare dissipation with qmeq, sanity check
     #############################
     def get_qmeq_kernel():
-        
+
         # builds qmeq system and returns kernel
-        
-        mulst = {0:muL, 1:muR}
+
+        mulst = {0: muL, 1: muR}
         n = 2
         nleads = 2
-        tlst = {0:TL, 1:TR}
-        U = {(0,1,1,0):Uval}
-        h_asym = {(0,0): eps1, (1,1): eps2}
-        tleads_asym = {(0, 0):t1L, (1, 0):t1R, (0, 1):t2L, (1, 1):t2R}
-        system = qmeq.Builder(nsingle=n, hsingle=h_asym, coulomb=U, nleads=nleads, kerntype= 'pyLindblad',
+        tlst = {0: TL, 1: TR}
+        U = {(0, 1, 1, 0): Uval}
+        h_asym = {(0, 0): eps1, (1, 1): eps2}
+        tleads_asym = {(0, 0): t1L, (1, 0): t1R, (0, 1): t2L, (1, 1): t2R}
+        system = qmeq.Builder(nsingle=n, hsingle=h_asym, coulomb=U, nleads=nleads, kerntype='pyLindblad',
                               mulst=mulst, tlst=tlst, tleads=tleads_asym, dband=1e10, )
         system.solve(currentq = False)
         
@@ -380,7 +481,8 @@ def calc_Lindblad_kernel(system, swap=False):
     mykern = np.zeros((6, 6)) + 0j
 
     # dissipation part
-    jump = build_jump_operators()
+    # jump = build_jump_operators()
+    jump = system.jump_operators
     for i in range(jump.shape[0]):
         term1 = vec_dissipator(jump[i],np.transpose(np.conjugate(jump[i])), dm=1)
         term2 = - 0.5 * vec_dissipator(np.transpose(np.conjugate(jump[i])), jump[i], dm=0)

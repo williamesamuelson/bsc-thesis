@@ -2,7 +2,10 @@ import numpy as np
 
 
 def trace_distance(vec1, vec2):
-    pass
+    mat1 = vector2matrix(vec1)
+    mat2 = vector2matrix(vec2)
+    dist = np.linalg.norm(mat1-mat2, 1)
+    return dist
 
 
 def bmatrix(a):

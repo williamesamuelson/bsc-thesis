@@ -127,6 +127,7 @@ def calc_tuning(delta_epsilons, system, lamb_shift):
     Arguments:
     delta_epsilons -- vector of delta_epsilons for tuning
     system -- ParallelDot object
+    lamb_shift -- Includes lamb_shift
 
     Returns:
     eigs -- matrix of eigenvalues (columns) for different delta_epsilons
@@ -202,14 +203,15 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
 
 def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
     """Plots the norm-difference between using diagonalization and integration.
+
+    Parameters:
+    system -- ParallelDot object
+    t_vec -- vector of points in time
+    rho_0 -- initial density matrix
+    ep -- ExceptionalPoint object
     """
     # Trace distance of the vectorized matrices?
-    if ep is None:
-        res_diag = np.array([list(system.dens_matrix_evo(t, rho_0))
-                             for t in t_vec])
-    else:
-        res_diag = np.array([list(system.dens_matrix_evo_ep(t, rho_0, ep))
-                             for t in t_vec])
+    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
 
     def rhs(t, y):
         L = system.kern
@@ -226,32 +228,102 @@ def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
     plt.show()
 
 
-def print_trace_evo(system, t_vec, ep=None):
-    if ep is None:
-        res_diag = np.array([list(system.dens_matrix_evo(t)) for t in t_vec])
-    else:
-        res_diag = np.array([list(system.dens_matrix_evo_ep(t, ep))
-                             for t in t_vec])
+def print_trace_evo(system, t_vec, rho_0, ep=None):
+    """Prints the trace of rho over time.
 
+    Parameters:
+    system -- ParallelDot object
+    t_vec -- vector of points in time
+    rho_0 -- initial density matrix
+    ep -- ExceptionalPoint object
+    """
+    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
     traces = [sum(res_diag[t, 0:4]) for t in range(len(t_vec))]
     print(np.array_str(np.array(traces), precision=6, suppress_small=True))
 
 
+def calc_dens_evo(system, t_vec, rho_0, ep=None):
+    """Calculates the density matrix evolution.
+
+    Parameters:
+    system -- ParallelDot object
+    t_vec -- vector of points in time
+    rho_0 -- initial density matrix
+    ep -- ExceptionalPoint object
+
+    Returns:
+    res -- len(t_vec)x6 matrix of density matrices in vector form at different
+           times
+    """
+    if ep is None:
+        res = np.array([list(system.dens_matrix_evo(t, rho_0)) for t in t_vec])
+    else:
+        res = np.array([list(system.dens_matrix_evo_ep(t, rho_0, ep))
+                        for t in t_vec])
+    return res
+
+
+def plot_current(system, t_vec, rho_0, direction, axis, ep=None):
+    """Plots the current over time normalized by steady state current.
+
+    Parameters:
+    system -- ParallelDot object
+    t_vec -- vector of points in time
+    rho_0 -- initial density matrix
+    direction -- direction of current (left/right)
+    axis -- axes object for plot
+    ep -- ExceptionalPoint object
+    """
+
+    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
+    res_curr = [system.calc_current(res_diag[i, :], direction)
+                for i in range(len(t_vec))]
+    ss_curr = system.calc_ss_current(rho_0, direction)
+    if not np.allclose(np.imag(res_curr), 0) or ss_curr.imag > 1e-6:
+        raise Exception('Imaginary parts in current')
+
+    axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
+    axis.set_xlabel(r'Time $(t)$', fontsize=15)
+    axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
+    axis.axhline(y=1, color='black', zorder=0)
+
+
+def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
+                             l_shift, ep):
+    fig, ax = plt.subplots()
+    exc_points = len(d_epsilons)*[None]
+    exc_points[0] = ep
+    for exc_point, d_epsilon in zip(exc_points, d_epsilons):
+        parallel_dots.change_delta_eps(d_epsilon)
+        parallel_dots.solve(lamb_shift=l_shift)
+        plot_current(parallel_dots, t_vec, rho_0, direction, ax, ep=exc_point)
+    ax.legend(['EP', 'non-EP', 'non-EP2'], fontsize=15)
+    ax.tick_params(axis='both', which='major', labelsize=13)
+    ax.tick_params(axis='both', which='minor', labelsize=10)
+    # plt.savefig('../current_epvsnonep.png', dpi=400, bbox_inches='tight')
+    plt.show()
+
+
 if __name__ == '__main__':
-    gamma = 1
-    delta_eps = gamma*0.29587174348697  # for lindblad no lamb shift
-    # delta_eps = gamma*0.5
-    delta_t = gamma*1e-3
-    v_bias = 30*gamma
+    GAMMA = 1
+    DELTA_EPS = GAMMA*0.29587174348697  # for lindblad no lamb shift
+    # DELTA_EPS = GAMMA*0.5
+    DELTA_T = GAMMA*1e-3
+    V_BIAS = 30*GAMMA
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
-    parallel_dots = ParallelDots(gamma, delta_eps, delta_t, d_vec,
+    parallel_dots = ParallelDots(GAMMA, DELTA_EPS, DELTA_T, d_vec,
                                  'pyLindblad', parameters='stephanie',
-                                 v_bias=v_bias)
+                                 v_bias=V_BIAS)
     l_shift = False
     parallel_dots.solve(lamb_shift=l_shift)
-    ep = ExceptionalPoint(parallel_dots, subspace=False)
-    rho_0 = ep.R[:, 0] + 0.3*ep.R[:, 2] + 0.3*ep.R[:, 2]
-    t_vec = np.linspace(0, 5, 100)
-    plot_int_vs_diag(parallel_dots, t_vec, rho_0, ep)
+
+    ep = ExceptionalPoint(parallel_dots)
+    rho_0 = ep.R[:, 0] + ep.R[:, 2]
+    rho_0 /= sum(rho_0[:4])      # make sure that rho0 has trace 1
+    parallel_dots.dens_matrix_evo_ep(2, rho_0, ep)
+    # rho_0 = np.array([0.5, 0.1, 0.3, 0.1, -0.3, 0.5])
+    # tvec = np.linspace(0, 20, 500)
+    # plot_int_vs_diag(parallel_dots, tvec, rho_0, ep)
+
