@@ -504,11 +504,11 @@ def calc_Lindblad_kernel(system, swap=False):
     mykern = Utrans @ mykern @ np.linalg.inv(Utrans)
     
     # compare with qmeq before adding lambshift
-    # qmeq_kern = get_qmeq_kernel()
-    qmeq_kern = system.kern
+    qmeq_kern = get_qmeq_kernel()
+    # qmeq_kern = system.kern
     if np.allclose(np.real(mykern),qmeq_kern) == False:
         print('Warning: qmeq and constructed Lindbladian not the same -- change state ordering')
-        #print(qmeq_kern - mykern)
+        print(qmeq_kern - mykern)
         #print(e1)
         #print(e2)
         Utrans2 = np.array([[1,0,0,0,0,0],[0,0,0,0,1,0],[0,1,0,0,0,0],[0,0,0,0,0,1],[0,0,0.5,0.5,0,0],[0,0,-0.5j, 0.5j,0,0]])
@@ -516,8 +516,10 @@ def calc_Lindblad_kernel(system, swap=False):
         if np.allclose(np.real(mykern_copy),qmeq_kern) == False:
             print('Warning: qmeq and constructed Lindbladian still not the same')
             print(np.array_str(qmeq_kern - mykern_copy, precision=1))
-            print(eps1)
-            print(eps2)
+            # print(np.array_str(qmeq_kern, precision=1))
+            # print(np.array_str(mykern_copy, precision=1))
+            # print(eps1)
+            # print(eps2)
         else:
             mykern = mykern_copy
             Utrans = Utrans2

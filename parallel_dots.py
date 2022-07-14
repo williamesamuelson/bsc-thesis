@@ -68,7 +68,6 @@ class ParallelDots(Builder):
                          mulst, tlst, dband,
                          kerntype=kerntype, itype=1)
         self.make_kern_copy = True
-        self.jump_operators = myLindblad.build_jump_operators(self)
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
               sol_eig=True, sort=True, lamb_shift=False,
@@ -94,6 +93,7 @@ class ParallelDots(Builder):
         # Perhaps this doesn't work... since all other calculations
         # are based on non Lamb-shift.
         if lamb_shift:
+            self.jump_operators = myLindblad.build_jump_operators(self)
             self.kern = myLindblad.calc_Lindblad_kernel(self)
 
         if sol_eig:  # dont we want to do this every time?
@@ -220,8 +220,8 @@ class ParallelDots(Builder):
                      [rho_aa, rho_bb, rho_cc, rho_dd, re(rho_bc), im(rho_bc)]
 
         """
-        if sum(rho_0[:4]) - 1 > 1e-5:
-            raise Exception('Initial value must have trace 1')
+        # if sum(rho_0[:4]) - 1 > 1e-5:
+        #     raise Exception('Initial value must have trace 1')
 
         if self.check_if_exc_point():
             warnings.warn("System at exceptional point, use dens_matrix_evo_ep\
@@ -246,8 +246,8 @@ class ParallelDots(Builder):
         return dens_evol
 
     def dens_matrix_evo_ep(self, time, rho_0, exc_point):
-        if sum(rho_0[:4]) - 1 > 1e-5:
-            raise Exception('Initial value must have trace 1')
+        # if abs(sum(rho_0[:4]) - 1) > 1e-5:
+        #     raise Exception('Initial value must have trace 1')
         eigvals = self.eigvals
         size = len(eigvals)
         R = exc_point.R

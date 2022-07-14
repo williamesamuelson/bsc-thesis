@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
+import pickle
 from exceptional_point import ExceptionalPoint
 
 
@@ -138,7 +139,7 @@ def calc_tuning(delta_epsilons, system, lamb_shift):
 
     for i, delta_e in enumerate(delta_epsilons):
         system.change_delta_eps(delta_e)
-        system.solve(lamb_shift=lamb_shift)  # masterq=False??
+        system.solve(lamb_shift=lamb_shift, currentq=False)  # masterq=False??
         eigs[i, :] = system.eigvals
     return eigs
 
@@ -186,6 +187,7 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
     Returns:
     delta_epsilon -- the value in delta_epsilons which is closest to the
                      crossing
+    min_mag_index -- the index in delta_epsilons/eigs of the best value
 
     Warning: Must check if there is an exceptional point in delta_epsilons
              first.
@@ -193,12 +195,52 @@ def calc_delta_eps_at_exc_point(delta_epsilons, eigs1, eigs2):
     min_mag_index = 0
     min_mag = float('inf')
     for i, (eig1_i, eig2_i) in enumerate(zip(eigs1, eigs2)):
-        current_mag = abs(eig1_i-eig2_i)
+        current_mag = np.abs(eig1_i-eig2_i)
         if current_mag < min_mag:
             min_mag_index = i
             min_mag = current_mag
 
-    return delta_epsilons[min_mag_index]
+    print(min_mag)
+    print(min_mag_index)
+    return delta_epsilons[min_mag_index], min_mag_index
+
+
+def optimize_ep(system, init_guess, init_range, tolerance,
+                ind1, ind2, lamb_shift):
+    eig1 = system.eigvals[ind1]
+    eig2 = system.eigvals[ind2]
+    linspace_len = 5
+    distance = np.abs(eig1 - eig2)
+    rang_e = init_range
+    current_d_eps = init_guess
+    old_ind = linspace_len
+    repeat = 0
+    while(distance > tolerance):
+        if repeat > 9:
+            break
+        delta_epsilons = current_d_eps + np.linspace(-rang_e, rang_e,
+                                                     linspace_len)
+        eigs = calc_tuning(delta_epsilons, system, lamb_shift)
+        current_d_eps, index = calc_delta_eps_at_exc_point(delta_epsilons,
+                                                           eigs[:, ind1],
+                                                           eigs[:, ind2])
+        eig1 = eigs[index, ind1]
+        eig2 = eigs[index, ind2]
+        distance = np.abs(eig1 - eig2)
+        print(rang_e)
+        print(delta_epsilons)
+        print('\n')
+        if not (index == linspace_len-1 or index == 0):
+            rang_e /= 2
+        if old_ind == index:
+            repeat += 1
+        else:
+            repeat = 0
+        old_ind = index
+
+    system.change_delta_eps(current_d_eps)
+    system.solve(lamb_shift=lamb_shift)
+    return current_d_eps
 
 
 def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
@@ -223,8 +265,8 @@ def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
     ax.plot(t_vec, norms)
     fs = 13
     ax.set_xlabel(r'$t$', fontsize=fs)
-    ax.set_ylabel(r'$||\rho_{diag} - \rho_{int}||$', fontsize=fs)
-    # plt.savefig('../intvsjordan_sFalse10s.png', dpi=400, bbox_inches='tight')
+    ax.set_ylabel(r'$||\rho_{jord} - \rho_{int}||$', fontsize=fs)
+    # plt.savefig('../intvsjord_lshift_rho3.png', dpi=400, bbox_inches='tight')
     plt.show()
 
 
@@ -306,24 +348,24 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
 
 if __name__ == '__main__':
     GAMMA = 1
-    DELTA_EPS = GAMMA*0.29587174348697  # for lindblad no lamb shift
-    # DELTA_EPS = GAMMA*0.5
-    DELTA_T = GAMMA*1e-3
-    V_BIAS = 30*GAMMA
+    pickle_off = open('../d_eps_ep_lamb_shift.txt', 'rb')
+    # using v_b = 350*GAMMA and delta_t = 1e-6
+    DELTA_EPS = pickle.load(pickle_off) * GAMMA
+    # DELTA_EPS = GAMMA*0.29587174348697  # for lindblad no lamb shift
+    DELTA_T = GAMMA*1e-6
+    V_BIAS = 350*GAMMA
 
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
     parallel_dots = ParallelDots(GAMMA, DELTA_EPS, DELTA_T, d_vec,
                                  'pyLindblad', parameters='stephanie',
                                  v_bias=V_BIAS)
-    l_shift = False
+    l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-
-    ep = ExceptionalPoint(parallel_dots)
+    tvec = np.linspace(0, 10, 100)
+    ep = ExceptionalPoint(parallel_dots, 'full space')
     rho_0 = ep.R[:, 0] + ep.R[:, 2]
-    rho_0 /= sum(rho_0[:4])      # make sure that rho0 has trace 1
-    parallel_dots.dens_matrix_evo_ep(2, rho_0, ep)
-    # rho_0 = np.array([0.5, 0.1, 0.3, 0.1, -0.3, 0.5])
-    # tvec = np.linspace(0, 20, 500)
-    # plot_int_vs_diag(parallel_dots, tvec, rho_0, ep)
+    rho_0 /= sum(rho_0[:4])
+    rho_0 = np.array([0.5, 0.2, 0.1, 0.3, 0.1, -0.5])
+    plot_int_vs_diag(parallel_dots, tvec, rho_0, ep)
 
