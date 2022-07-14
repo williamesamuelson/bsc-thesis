@@ -352,6 +352,7 @@ if __name__ == '__main__':
     # using v_b = 350*GAMMA and delta_t = 1e-6
     DELTA_EPS = pickle.load(pickle_off) * GAMMA
     # DELTA_EPS = GAMMA*0.29587174348697  # for lindblad no lamb shift
+    # DELTA_EPS = 0.5
     DELTA_T = GAMMA*1e-6
     V_BIAS = 350*GAMMA
 
@@ -364,8 +365,9 @@ if __name__ == '__main__':
     parallel_dots.solve(lamb_shift=l_shift)
     tvec = np.linspace(0, 10, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
-    rho_0 = ep.R[:, 0] + ep.R[:, 2]
-    rho_0 /= sum(rho_0[:4])
-    rho_0 = np.array([0.5, 0.2, 0.1, 0.3, 0.1, -0.5])
+    rho_0 = ep.R[:, 2]
+    # rho_0 /= sum(rho_0[:4])
+    # rho_0 = np.array([0.5, 0.2, 0.1, 0.2, 0.1, -0.5], dtype=complex)
+    tvec = np.linspace(0, 25, 100)
     plot_int_vs_diag(parallel_dots, tvec, rho_0, ep)
 

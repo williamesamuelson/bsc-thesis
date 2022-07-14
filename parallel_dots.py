@@ -35,6 +35,7 @@ class ParallelDots(Builder):
         self.eigvals = None
         self.r_eigvecs = None
         self.l_eigvecs = None
+        self.jump_operators = None
 
         if parameters == 'stephanie':
             vbias = 30*gamma
@@ -60,7 +61,7 @@ class ParallelDots(Builder):
 
         # chemical potentials and temperatures of the leads
         #           L         R
-        mulst = {0: vbias/2, 1: -vbias/2}
+        mulst = {0: vbias/2, 1: -1*vbias/2}
         tlst = {0: temp, 1: temp}
 
         # python kerntype + make_kern_copy fixes problem with kernel
@@ -70,7 +71,7 @@ class ParallelDots(Builder):
         self.make_kern_copy = True
 
     def solve(self, qdq=True, rotateq=True, masterq=True, currentq=True,
-              sol_eig=True, sort=True, lamb_shift=False,
+              sort=True, lamb_shift=False,
               *args, **kwargs):
         """Solves the master equation and sets the kernel matrix.
 
@@ -82,40 +83,39 @@ class ParallelDots(Builder):
         rotateq -- ?
         masterq -- True to solve master eq
         currentq -- True to calculate current
-        sol_eig -- True to calculate eigenvectors
         sort -- True to sort eigenvectors
         lamb_shift -- True to include Lamb shift
         """
-
-        self.appr.solve(qdq=qdq, rotateq=rotateq, masterq=masterq,
-                        currentq=currentq, *args, **kwargs)
-
-        # Perhaps this doesn't work... since all other calculations
-        # are based on non Lamb-shift.
+        # is this smart?
         if lamb_shift:
             self.jump_operators = myLindblad.build_jump_operators(self)
-            self.kern = myLindblad.calc_Lindblad_kernel(self)
+            lind_kern = myLindblad.calc_Lindblad_kernel(self)
+            if not np.allclose(np.imag(lind_kern), 0):
+                raise Exception("imaginary parts in kernel")
+            self.kern = lind_kern
+        else:
+            self.appr.solve(qdq=qdq, rotateq=rotateq, masterq=masterq,
+                            currentq=currentq, *args, **kwargs)
 
-        if sol_eig:  # dont we want to do this every time?
-            self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
-                                                                  left=True,
-                                                                  right=True)
-            if sort:  # in reverse order
-                indices = np.argsort(self.eigvals)[::-1]
-                self.eigvals = self.eigvals[indices]
-                self.l_eigvecs = self.l_eigvecs[:, indices]
-                self.r_eigvecs = self.r_eigvecs[:, indices]
+        self.eigvals, self.l_eigvecs, self.r_eigvecs = sc_eig(self.kern,
+                                                              left=True,
+                                                              right=True)
+        if sort:  # in reverse order
+            indices = np.argsort(self.eigvals)[::-1]
+            self.eigvals = self.eigvals[indices]
+            self.l_eigvecs = self.l_eigvecs[:, indices]
+            self.r_eigvecs = self.r_eigvecs[:, indices]
 
-            # normalize eigvecs such that l_i * r_j = delta_ij
-            # need to divide by sc_product.conj()
-            # do not divide vectors at ep, since then l_i * r_i -> 0
-            ep_indices = self.check_if_exc_point()
-            normal_indices = np.setdiff1d(np.arange(len(self.eigvals)),
-                                          ep_indices)
-            for i in normal_indices:
-                sc_prod = np.vdot(self.l_eigvecs[:, i],
-                                  self.r_eigvecs[:, i])
-                self.l_eigvecs[:, i] /= sc_prod.conj()
+        # normalize eigvecs such that l_i * r_j = delta_ij
+        # need to divide by sc_product.conj()
+        # do not divide vectors at ep, since then l_i * r_i -> 0
+        # ep_indices = self.check_if_exc_point()
+        # normal_indices = np.setdiff1d(np.arange(len(self.eigvals)),
+        #                               ep_indices)
+        # for i in normal_indices:
+        #     sc_prod = np.vdot(self.l_eigvecs[:, i],
+        #                       self.r_eigvecs[:, i])
+        #     self.l_eigvecs[:, i] /= sc_prod.conj()
 
     def change_delta_eps(self, delta_eps):
         """Changes delta_eps of the system
@@ -231,6 +231,12 @@ class ParallelDots(Builder):
         l_eigvecs, r_eigvecs = self.l_eigvecs, self.r_eigvecs
         size = len(self.eigvals)
 
+        if not np.allclose(self.l_eigvecs.conj().T@self.r_eigvecs,
+                           np.identity(size), atol=1e-7):
+            for i in range(size):
+                sc_prod = np.vdot(l_eigvecs[:, i], r_eigvecs[:, i])
+                l_eigvecs[:, i] /= sc_prod.conj()
+
         # inner products of left eigenvectors and rho_0 to get all c_i's
         constants = np.array([np.vdot(l_eigvecs[:, i], rho_0)
                               for i in range(size)])
@@ -246,6 +252,17 @@ class ParallelDots(Builder):
         return dens_evol
 
     def dens_matrix_evo_ep(self, time, rho_0, exc_point):
+        """Calculates the density matrix at time 'time' at EP.
+
+        Parameters:
+        time -- point in time at which rho is evaluated
+        rho_0 -- inital value of density matrix
+        exc_point -- ExceptionalPoint object
+
+        Returns:
+        dens_evol -- the vectorized density matrix at time t in the format
+                     [rho_aa, rho_bb, rho_cc, rho_dd, re(rho_bc), im(rho_bc)]
+        """
         # if abs(sum(rho_0[:4]) - 1) > 1e-5:
         #     raise Exception('Initial value must have trace 1')
         eigvals = self.eigvals
@@ -275,7 +292,16 @@ class ParallelDots(Builder):
         return dens_evol
 
     def calc_current(self, rho, direction):
-        L_jump = self.jump_operators
+        """Calculates current through the system with density matrix rho.
+
+        Parameters:
+        rho -- density matrix in usual vector format
+        direction -- left or right, direction of current
+
+        Returns:
+        current -- the current as a scalar
+        """
+        l_jump = self.jump_operators
 
         if direction == 'left':
             ind1 = 0
@@ -288,14 +314,28 @@ class ParallelDots(Builder):
 
         rho_matrix = vector2matrix(rho)
 
-        term1_mat = L_jump[ind1].conj().T @ L_jump[ind1] @ rho_matrix
-        term2_mat = L_jump[ind2].conj().T @ L_jump[ind2] @ rho_matrix
+        term1_mat = l_jump[ind1].conj().T @ l_jump[ind1] @ rho_matrix
+        term2_mat = l_jump[ind2].conj().T @ l_jump[ind2] @ rho_matrix
         current = np.trace(term1_mat) - np.trace(term2_mat)
         return current
 
     def calc_ss_dens_matrix(self, rho_0):
+        """Calculates steady-state density matrix.
+
+        Parameters:
+        rho_0 -- initial density matrix
+
+        Returns:
+        ss_dens_matrix -- steady state density matrix
+        """
         return np.vdot(self.l_eigvecs[:, 0], rho_0)*self.r_eigvecs[:, 0]
 
     def calc_ss_current(self, rho_0, direction):
+        """Calculates steady-state current.
+
+        Parameters:
+        rho_0 -- initial density matrix
+        direction -- left/right, direction of current
+        """
         ss_rho = self.calc_ss_dens_matrix(rho_0)
         return self.calc_current(ss_rho, direction)
