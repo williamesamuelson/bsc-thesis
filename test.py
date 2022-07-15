@@ -1,8 +1,8 @@
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
-import pickle
 from exceptional_point import ExceptionalPoint
 
 
@@ -261,12 +261,15 @@ def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
 
     res_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
+    norms_int = 1/2 * np.array(np.linalg.norm(res_int, axis=1))
     fig, ax = plt.subplots(1, 1)
-    ax.plot(t_vec, norms)
+    ax.plot(t_vec, norms/norms_int)
     fs = 13
     ax.set_xlabel(r'$t$', fontsize=fs)
-    ax.set_ylabel(r'$||\rho_{jord} - \rho_{int}||$', fontsize=fs)
-    # plt.savefig('../intvsjord_lshift_rho3.png', dpi=400, bbox_inches='tight')
+    ax.set_ylabel(r'$||\rho_{jord} - \rho_{int}||/||\rho_{int}||$',
+                  fontsize=fs)
+    # plt.savefig('../figures/intvsdiag_atep_rhoprime.png', dpi=400,
+    #             bbox_inches='tight')
     plt.show()
 
 
@@ -305,8 +308,8 @@ def calc_dens_evo(system, t_vec, rho_0, ep=None):
     return res
 
 
-def plot_current(system, t_vec, rho_0, direction, axis, ep=None):
-    """Plots the current over time normalized by steady state current.
+def plot_current(system, t_vec, rho_0, direction, axis, normalize, ep=None):
+    """Plots the current over time.
 
     Parameters:
     system -- ParallelDot object
@@ -314,7 +317,9 @@ def plot_current(system, t_vec, rho_0, direction, axis, ep=None):
     rho_0 -- initial density matrix
     direction -- direction of current (left/right)
     axis -- axes object for plot
-    ep -- ExceptionalPoint object
+    normalize -- True to normalize with steady-state
+    ep -- ExceptionalPoint object, None for using dens_matrix_evo instead of
+          dens_matrix_evo_ep
     """
 
     res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
@@ -324,14 +329,30 @@ def plot_current(system, t_vec, rho_0, direction, axis, ep=None):
     if not np.allclose(np.imag(res_curr), 0) or ss_curr.imag > 1e-6:
         raise Exception('Imaginary parts in current')
 
-    axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
+    if normalize:
+        axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
+        axis.axhline(y=1, color='black', zorder=0)
+        axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
+    else:
+        axis.set_yscale("log", base=10)
+        axis.plot(t_vec, np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr))
+        axis.set_ylabel(r'$I(t)$', fontsize=20)
     axis.set_xlabel(r'Time $(t)$', fontsize=15)
-    axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
-    axis.axhline(y=1, color='black', zorder=0)
 
 
 def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
                              l_shift, ep):
+    """Plots current for systems at EP and outside EP.
+
+    Parameters:
+    system -- ParallelDots object
+    t_vec -- time vector
+    rho_0 -- initial density matrix
+    direction -- left/right
+    d_epsilons -- vector of delta epsilons, first entry at ep!
+    l_shift -- True to use lamb_shift
+    ep -- Exceptional point object
+    """
     fig, ax = plt.subplots()
     exc_points = len(d_epsilons)*[None]
     exc_points[0] = ep
@@ -346,16 +367,34 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
     plt.show()
 
 
+def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, ep):
+    fig, axis = plt.subplots()
+    leg = []
+    for rho_tuple, const_tuple in zip(rhos, consts):
+        rho_0 = ep.R[:, 0].copy()
+        for rho_ind, const in zip(rho_tuple, const_tuple):
+            rho_0 += const*ep.R[:, rho_ind]
+        rho_0 /= sum(rho_0[:4])
+        tot_overlap = sum(np.abs(ep.L.conj().T@rho_0))
+        overlap = np.abs(np.vdot(ep.L[:, 2], rho_0))
+        print(overlap)
+        print(tot_overlap)
+        leg.append(f'Overlap = {np.real(overlap/tot_overlap):.2f}')
+        plot_current(system, t_vec, rho_0, direction, axis, False, ep)
+
+    axis.legend(leg)
+    axis.set_xlabel('time')
+    plt.show()
+
+
 if __name__ == '__main__':
     GAMMA = 1
-    pickle_off = open('../d_eps_ep_lamb_shift.txt', 'rb')
-    # using v_b = 350*GAMMA and delta_t = 1e-6
-    DELTA_EPS = pickle.load(pickle_off) * GAMMA
-    # DELTA_EPS = GAMMA*0.29587174348697  # for lindblad no lamb shift
-    # DELTA_EPS = 0.5
+    with open('../d_eps_ep_lamb_shift.txt', 'rb') as f:
+        # using v_b = 350*GAMMA and delta_t = 1e-6
+        DELTA_EPS = pickle.load(f) * GAMMA
+    # DELTA_EPS = GAMMA*0.2969341596429213  # for lindblad no lamb shift
     DELTA_T = GAMMA*1e-6
     V_BIAS = 350*GAMMA
-
     #           upper->L, upper->R, lower->L, lower->R
     d_vec = np.array([-1, 1, 1, -1])
     parallel_dots = ParallelDots(GAMMA, DELTA_EPS, DELTA_T, d_vec,
@@ -365,9 +404,7 @@ if __name__ == '__main__':
     parallel_dots.solve(lamb_shift=l_shift)
     tvec = np.linspace(0, 10, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
-    rho_0 = ep.R[:, 2]
-    # rho_0 /= sum(rho_0[:4])
-    # rho_0 = np.array([0.5, 0.2, 0.1, 0.2, 0.1, -0.5], dtype=complex)
-    tvec = np.linspace(0, 25, 100)
-    plot_int_vs_diag(parallel_dots, tvec, rho_0, ep)
-
+    tvec = np.linspace(0, 1, 100)
+    rhos = [(2,), (1,)]
+    consts = [(-1,), (1,)]
+    plot_current_diff_rho0(parallel_dots, tvec, rhos, consts, 'left', ep)

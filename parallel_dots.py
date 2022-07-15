@@ -268,9 +268,12 @@ class ParallelDots(Builder):
         eigvals = self.eigvals
         size = len(eigvals)
         R = exc_point.R
-        if exc_point.consts is None:
-            exc_point.consts = exc_point.calc_constants(rho_0)
-        consts = exc_point.consts
+        L = exc_point.L
+        # if exc_point.consts is None:
+        #     exc_point.consts = exc_point.calc_constants(rho_0)
+        # consts = exc_point.consts
+        consts = np.array([np.vdot(L[:, i], rho_0)
+                           for i in range(size)])
         ep_ind = list(exc_point.indices)
         ep_eigval = eigvals[ep_ind[0]]
 
@@ -328,6 +331,9 @@ class ParallelDots(Builder):
         Returns:
         ss_dens_matrix -- steady state density matrix
         """
+        # make sure that they are normalized
+        sc_prod = np.vdot(self.l_eigvecs[:, 0], self.r_eigvecs[:, 0])
+        self.l_eigvecs[:, 0] /= sc_prod.conj()
         return np.vdot(self.l_eigvecs[:, 0], rho_0)*self.r_eigvecs[:, 0]
 
     def calc_ss_current(self, rho_0, direction):
