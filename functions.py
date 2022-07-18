@@ -32,3 +32,11 @@ def vector2matrix(vec):
     matrix[1, 2] = vec[-2] + vec[-1]*1j
     matrix[2, 1] = matrix[1, 2].conjugate()
     return matrix
+
+
+def my_ceil(a, precision=0):
+    return np.true_divide(np.ceil(a * 10**precision), 10**precision)
+
+
+def my_floor(a, precision=0):
+    return np.true_divide(np.floor(a * 10**precision), 10**precision)

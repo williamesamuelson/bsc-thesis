@@ -6,6 +6,7 @@ from scipy.linalg import eig as sc_eig
 from qmeq.builder.builder import Builder
 import myLindblad
 from functions import vector2matrix
+from scipy.integrate import solve_ivp
 # import exceptional_point
 
 
@@ -331,10 +332,14 @@ class ParallelDots(Builder):
         Returns:
         ss_dens_matrix -- steady state density matrix
         """
+        # find steady state index:
+        ss_index = np.argmin(np.abs(self.eigvals))
         # make sure that they are normalized
-        sc_prod = np.vdot(self.l_eigvecs[:, 0], self.r_eigvecs[:, 0])
-        self.l_eigvecs[:, 0] /= sc_prod.conj()
-        return np.vdot(self.l_eigvecs[:, 0], rho_0)*self.r_eigvecs[:, 0]
+        sc_prod = np.vdot(self.l_eigvecs[:, ss_index],
+                          self.r_eigvecs[:, ss_index])
+        self.l_eigvecs[:, ss_index] /= sc_prod.conj()
+        const = np.vdot(self.l_eigvecs[:, ss_index], rho_0)
+        return const*self.r_eigvecs[:, ss_index]
 
     def calc_ss_current(self, rho_0, direction):
         """Calculates steady-state current.
@@ -345,3 +350,26 @@ class ParallelDots(Builder):
         """
         ss_rho = self.calc_ss_dens_matrix(rho_0)
         return self.calc_current(ss_rho, direction)
+
+    def optimize_alpha(self, ep, rho_0, t_vec, alpha_len, norm):
+        dm_diag = np.array([self.dens_matrix_evo(time, rho_0)
+                            for time in t_vec])
+        dm_ep = np.array([self.dens_matrix_evo_ep(time, rho_0, ep)
+                          for time in t_vec])
+
+        def rhs(t, y):
+            L = self.kern
+            return L@y
+
+        dm_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
+        alphas = np.linspace(0, 1, alpha_len)
+        dm_alphas = np.array([(1-alpha) * dm_diag + alpha*dm_ep
+                              for alpha in alphas])
+        diff_norms_along_dm = np.linalg.norm(dm_alphas - dm_int, axis=2)
+        if norm == 'max':
+            norms_along_time = np.max(diff_norms_along_dm, axis=1)
+        elif norm == 'length':
+            norms_along_time = np.linalg.norm(diff_norms_along_dm, axis=1)
+        alpha_index = np.argmin(norms_along_time)
+        return alphas[alpha_index]
+

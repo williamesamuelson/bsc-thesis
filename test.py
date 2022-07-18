@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
 from exceptional_point import ExceptionalPoint
+from functions import my_floor, my_ceil
 
 
 def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
@@ -215,7 +216,7 @@ def optimize_ep(system, init_guess, init_range, tolerance,
     current_d_eps = init_guess
     old_ind = linspace_len
     repeat = 0
-    while(distance > tolerance):
+    while distance > tolerance:
         if repeat > 9:
             break
         delta_epsilons = current_d_eps + np.linspace(-rang_e, rang_e,
@@ -308,7 +309,7 @@ def calc_dens_evo(system, t_vec, rho_0, ep=None):
     return res
 
 
-def plot_current(system, t_vec, rho_0, direction, axis, normalize, ep=None):
+def plot_current(system, t_vec, rho_0, direction, axis, method, ep=None):
     """Plots the current over time.
 
     Parameters:
@@ -327,16 +328,21 @@ def plot_current(system, t_vec, rho_0, direction, axis, normalize, ep=None):
                 for i in range(len(t_vec))]
     ss_curr = system.calc_ss_current(rho_0, direction)
     if not np.allclose(np.imag(res_curr), 0) or ss_curr.imag > 1e-6:
+        print(np.imag(res_curr))
         raise Exception('Imaginary parts in current')
 
-    if normalize:
+    if method == 'divide':
         axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
         axis.axhline(y=1, color='black', zorder=0)
         axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
-    else:
+    elif method == 'subtract_log':
         axis.set_yscale("log", base=10)
-        axis.plot(t_vec, np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr))
-        axis.set_ylabel(r'$I(t)$', fontsize=20)
+        axis.plot(t_vec,
+                  np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr))
+        axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=20)
+    else:
+        axis.plot(t_vec, res_curr - ss_curr)
+        axis.set_ylabel(r'$I(t)$')
     axis.set_xlabel(r'Time $(t)$', fontsize=15)
 
 
@@ -377,13 +383,45 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, ep):
         rho_0 /= sum(rho_0[:4])
         tot_overlap = sum(np.abs(ep.L.conj().T@rho_0))
         overlap = np.abs(np.vdot(ep.L[:, 2], rho_0))
-        print(overlap)
-        print(tot_overlap)
         leg.append(f'Overlap = {np.real(overlap/tot_overlap):.2f}')
-        plot_current(system, t_vec, rho_0, direction, axis, False, ep)
+        plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log', ep)
 
-    axis.legend(leg)
+    # leg =
+    # [r"$\rho_0 = \rho_{ss} + \rho'$", r"$\rho_0 = \rho_{ss} + \bar{\rho}$"]
+    axis.legend(leg, fontsize=15)
+    axis.tick_params(axis='both', which='major', labelsize=13)
+    axis.tick_params(axis='both', which='minor', labelsize=10)
     axis.set_xlabel('time')
+    # plt.savefig('../figures/current_diff_rho_0_log.png', dpi=400,
+    #             bbox_inches='tight')
+    plt.show()
+
+
+def plot_alpha_vs_dist(delta_eps, delta_epsilons, system):
+
+    alphas = []
+    dists = []
+
+    for d_eps in delta_epsilons:
+        system.change_delta_eps(d_eps)
+        system.solve(lamb_shift=l_shift)
+        ep = ExceptionalPoint(system, 'full space')
+        rho_0 = ep.R[:, 0] + ep.R[:, 2]
+        alpha = parallel_dots.optimize_alpha(ep, rho_0, tvec, alpha_len,
+                                             'length')
+        alphas.append(alpha)
+        dist = np.abs(ep.eigvals[ep.indices[1]] - ep.eigvals[ep.indices[0]])
+        dists.append(dist)
+
+    fig, axis = plt.subplots()
+    # axis.set_xscale("log")
+    # axis.plot(dists, alphas, '.', markersize=10)
+    axis.plot(delta_epsilons - delta_eps, alphas, '.', markersize=10)
+    axis.set_xlabel('Distance between eigenvalues', fontsize=20)
+    axis.set_ylabel(r'$\alpha$', fontsize=20)
+    axis.tick_params(axis='both', which='major', labelsize=13)
+    axis.tick_params(axis='both', which='minor', labelsize=10)
+    # plt.savefig('../figures/alphavsdist.png', dpi=400, bbox_inches='tight')
     plt.show()
 
 
@@ -392,7 +430,8 @@ if __name__ == '__main__':
     with open('../d_eps_ep_lamb_shift.txt', 'rb') as f:
         # using v_b = 350*GAMMA and delta_t = 1e-6
         DELTA_EPS = pickle.load(f) * GAMMA
-    # DELTA_EPS = GAMMA*0.2969341596429213  # for lindblad no lamb shift
+    # for lindblad no lamb shift
+    # DELTA_EPS = GAMMA*0.29693415964199998402506253114552237
     DELTA_T = GAMMA*1e-6
     V_BIAS = 350*GAMMA
     #           upper->L, upper->R, lower->L, lower->R
@@ -402,9 +441,16 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    tvec = np.linspace(0, 10, 100)
-    ep = ExceptionalPoint(parallel_dots, 'full space')
-    tvec = np.linspace(0, 1, 100)
-    rhos = [(2,), (1,)]
-    consts = [(-1,), (1,)]
-    plot_current_diff_rho0(parallel_dots, tvec, rhos, consts, 'left', ep)
+    tvec = np.linspace(0, 10, 500)
+    alpha_len = 100
+    delta_epsilons = np.empty(0)
+    for i in range(5, 20):
+        d_eps_floor = my_floor(DELTA_EPS, i)
+        d_eps_ceil = my_ceil(DELTA_EPS, i)
+        delta_epsilons = np.append(delta_epsilons, [d_eps_floor, d_eps_ceil])
+
+    critical_point = round(DELTA_EPS, 13)
+    extra_points = np.linspace(critical_point-5e-12, critical_point+5e-12, 10)
+    delta_epsilons = np.append(delta_epsilons, extra_points)
+    plot_alpha_vs_dist(DELTA_EPS, delta_epsilons, parallel_dots)
+    
