@@ -159,7 +159,7 @@ def current_steph(L_jump, dm, direction):
     return current
 
 
-def calc_Lindblad_kernel(system, swap=False):
+def calc_Lindblad_kernel(system, sanity_check=False, swap=False):
 
     # -------------------------
     # input parameters:
@@ -189,65 +189,6 @@ def calc_Lindblad_kernel(system, swap=False):
     t1R = hop_arr[1]
     t2R = hop_arr[3]
 
-    # build Lindblad operators
-    #############################
-    # move outside and insert parameters instead so that I can use it for
-    # current
-    # def build_jump_operators():
-
-    #     # dot 1 -------------------------
-    #     L1 = np.zeros((4, 4))
-    #     L1[1, 0] = np.sqrt(FermiDirac(eps1, muL, TL))
-    #     L1[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muL, TL))
-
-    #     L2 = np.zeros((4, 4))
-    #     L2[0, 1] = np.sqrt(1 - FermiDirac(eps1, muL, TL))
-    #     L2[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muL, TL))
-
-    #     L3 = np.zeros((4, 4))
-    #     L3[1, 0] = np.sqrt(FermiDirac(eps1, muR, TR))
-    #     L3[3, 2] = -np.sqrt(FermiDirac(eps1 + Uval, muR, TR))
-
-    #     L4 = np.zeros((4, 4))
-    #     L4[0, 1] = np.sqrt(1 - FermiDirac(eps1, muR, TR))
-    #     L4[2, 3] = -np.sqrt(1 - FermiDirac(eps1 + Uval, muR, TR))
-    #     # --------------------------------
-
-    #     # dot 2 -------------------------
-    #     L5 = np.zeros((4,4))
-    #     L5[2,0] = np.sqrt(FermiDirac(eps2, muL, TL))
-    #     L5[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muL, TL))
-
-    #     L6 = np.zeros((4,4))
-    #     L6[0,2] = np.sqrt(1 - FermiDirac(eps2, muL, TL))
-    #     L6[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muL, TL))
-
-    #     L7 = np.zeros((4,4))
-    #     L7[2,0] = np.sqrt(FermiDirac(eps2, muR, TR))
-    #     L7[3,1] = np.sqrt(FermiDirac(eps2 + Uval, muR, TR))
-
-    #     L8 = np.zeros((4,4))
-    #     L8[0,2] = np.sqrt(1 - FermiDirac(eps2, muR, TR))
-    #     L8[1,3] = np.sqrt(1 - FermiDirac(eps2 + Uval, muR, TR))
-    #     #--------------------------------
-
-    #     # combine processes
-
-    #     La = t1L * L1 + t2L * L5
-    #     Lb = t1L * L2 + t2L * L6
-    #     Lc = t1R * L3 + t2R * L7
-    #     Ld = t1R * L4 + t2R * L8
-
-    #     # write all jump operators in tensor
-
-    #     L_tensor = np.zeros((4,4,4))
-
-    #     L_tensor[0,:,:] = La
-    #     L_tensor[1,:,:] = Lb
-    #     L_tensor[2,:,:] = Lc
-    #     L_tensor[3,:,:] = Ld
-
-    #     return L_tensor
     #############################
 
     # compare dissipation with qmeq, sanity check
@@ -504,25 +445,26 @@ def calc_Lindblad_kernel(system, swap=False):
     mykern = Utrans @ mykern @ np.linalg.inv(Utrans)
     
     # compare with qmeq before adding lambshift
-    qmeq_kern = get_qmeq_kernel()
-    # qmeq_kern = system.kern
-    if np.allclose(np.real(mykern),qmeq_kern) == False:
-        print('Warning: qmeq and constructed Lindbladian not the same -- change state ordering')
-        print(qmeq_kern - mykern)
-        #print(e1)
-        #print(e2)
-        Utrans2 = np.array([[1,0,0,0,0,0],[0,0,0,0,1,0],[0,1,0,0,0,0],[0,0,0,0,0,1],[0,0,0.5,0.5,0,0],[0,0,-0.5j, 0.5j,0,0]])
-        mykern_copy = Utrans2 @ mykern @ np.linalg.inv(Utrans2)
-        if np.allclose(np.real(mykern_copy),qmeq_kern) == False:
-            print('Warning: qmeq and constructed Lindbladian still not the same')
-            print(np.array_str(qmeq_kern - mykern_copy, precision=1))
-            # print(np.array_str(qmeq_kern, precision=1))
-            # print(np.array_str(mykern_copy, precision=1))
-            # print(eps1)
-            # print(eps2)
-        else:
-            mykern = mykern_copy
-            Utrans = Utrans2
+    if sanity_check:
+        qmeq_kern = get_qmeq_kernel()
+        # qmeq_kern = system.kern
+        if np.allclose(np.real(mykern) ,qmeq_kern) == False:
+            print('Warning: qmeq and constructed Lindbladian not the same -- change state ordering')
+            print(qmeq_kern - mykern)
+            #print(e1)
+            #print(e2)
+            Utrans2 = np.array([[1,0,0,0,0,0],[0,0,0,0,1,0],[0,1,0,0,0,0],[0,0,0,0,0,1],[0,0,0.5,0.5,0,0],[0,0,-0.5j, 0.5j,0,0]])
+            mykern_copy = Utrans2 @ mykern @ np.linalg.inv(Utrans2)
+            if np.allclose(np.real(mykern_copy),qmeq_kern) == False:
+                print('Warning: qmeq and constructed Lindbladian still not the same')
+                print(np.array_str(qmeq_kern - mykern_copy, precision=1))
+                # print(np.array_str(qmeq_kern, precision=1))
+                # print(np.array_str(mykern_copy, precision=1))
+                # print(eps1)
+                # print(eps2)
+            else:
+                mykern = mykern_copy
+                Utrans = Utrans2
 
         
     # add lambshift 

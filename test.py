@@ -1,10 +1,11 @@
 import pickle
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
 from exceptional_point import ExceptionalPoint
-from functions import my_floor, my_ceil
+# from functions import my_floor, my_ceil
 
 
 def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
@@ -244,23 +245,50 @@ def optimize_ep(system, init_guess, init_range, tolerance,
     return current_d_eps
 
 
-def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
-    """Plots the norm-difference between using diagonalization and integration.
+def calc_dens_evo(system, t_vec, rho_0, method, ep=None):
+    """Calculates the density matrix evolution.
 
     Parameters:
     system -- ParallelDot object
     t_vec -- vector of points in time
     rho_0 -- initial density matrix
+    method -- method of calculation, 'ep', 'diag' or 'num'.
+    ep -- ExceptionalPoint object
+
+    Returns:
+    res -- len(t_vec)x6 matrix of density matrices in vector form at different
+           times
+    """
+    if method == 'diag':
+        res = np.array([list(system.dens_matrix_evo(t, rho_0)) for t in t_vec])
+    elif method == 'ep':
+        res = np.array([list(system.dens_matrix_evo_ep(t, rho_0, ep))
+                        for t in t_vec])
+    elif method == 'num':
+
+        def rhs(t, y):
+            L = system.kern
+            return L@y
+
+        res = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
+
+    return res
+
+
+def plot_int_vs_diag(system, t_vec, rho_0, method, ep=None):
+    """Plots the norm-difference between using 'method' and integration.
+
+    Parameters:
+    system -- ParallelDot object
+    t_vec -- vector of points in time
+    rho_0 -- initial density matrix
+    method -- method of calculation 'ep' or 'diag'
     ep -- ExceptionalPoint object
     """
     # Trace distance of the vectorized matrices?
-    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
+    res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep)
+    res_int = calc_dens_evo(system, t_vec, rho_0, 'num')
 
-    def rhs(t, y):
-        L = system.kern
-        return L@y
-
-    res_int = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
     norms_int = 1/2 * np.array(np.linalg.norm(res_int, axis=1))
     fig, ax = plt.subplots(1, 1)
@@ -274,42 +302,22 @@ def plot_int_vs_diag(system, t_vec, rho_0, ep=None):
     plt.show()
 
 
-def print_trace_evo(system, t_vec, rho_0, ep=None):
+def print_trace_evo(system, t_vec, rho_0, method, ep=None):
     """Prints the trace of rho over time.
 
     Parameters:
     system -- ParallelDot object
     t_vec -- vector of points in time
     rho_0 -- initial density matrix
+    method -- method of calculation, 'ep', 'diag' or 'num'.
     ep -- ExceptionalPoint object
     """
-    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
+    res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep)
     traces = [sum(res_diag[t, 0:4]) for t in range(len(t_vec))]
     print(np.array_str(np.array(traces), precision=6, suppress_small=True))
 
 
-def calc_dens_evo(system, t_vec, rho_0, ep=None):
-    """Calculates the density matrix evolution.
-
-    Parameters:
-    system -- ParallelDot object
-    t_vec -- vector of points in time
-    rho_0 -- initial density matrix
-    ep -- ExceptionalPoint object
-
-    Returns:
-    res -- len(t_vec)x6 matrix of density matrices in vector form at different
-           times
-    """
-    if ep is None:
-        res = np.array([list(system.dens_matrix_evo(t, rho_0)) for t in t_vec])
-    else:
-        res = np.array([list(system.dens_matrix_evo_ep(t, rho_0, ep))
-                        for t in t_vec])
-    return res
-
-
-def plot_current(system, t_vec, rho_0, direction, axis, method, ep=None):
+def plot_current(system, t_vec, rho_0, direction, axis, plot, method, ep=None):
     """Plots the current over time.
 
     Parameters:
@@ -318,62 +326,83 @@ def plot_current(system, t_vec, rho_0, direction, axis, method, ep=None):
     rho_0 -- initial density matrix
     direction -- direction of current (left/right)
     axis -- axes object for plot
-    normalize -- True to normalize with steady-state
+    plot -- what to plot, 'divide', 'subtract_log' or 'normal'
+    method -- method of calculation, 'ep', 'diag' or 'num'.
     ep -- ExceptionalPoint object, None for using dens_matrix_evo instead of
           dens_matrix_evo_ep
     """
 
-    res_diag = calc_dens_evo(system, t_vec, rho_0, ep)
+    res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep)
     res_curr = [system.calc_current(res_diag[i, :], direction)
                 for i in range(len(t_vec))]
     ss_curr = system.calc_ss_current(rho_0, direction)
     if not np.allclose(np.imag(res_curr), 0) or ss_curr.imag > 1e-6:
-        print(np.imag(res_curr))
-        raise Exception('Imaginary parts in current')
+        warnings.warn('Imaginary parts in current')
 
-    if method == 'divide':
+    if plot == 'divide':
         axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
-        axis.axhline(y=1, color='black', zorder=0)
+        axis.axhline(y=1, color='black', zorder=0, label='_nolegend_')
         axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
-    elif method == 'subtract_log':
+    elif plot == 'subtract_log':
         axis.set_yscale("log", base=10)
         axis.plot(t_vec,
                   np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr))
         axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=20)
+    elif plot == 'normal':
+        axis.plot(t_vec, np.real(res_curr))
+        axis.set_ylabel(r'$I(t)$', fontsize=20)
     else:
-        axis.plot(t_vec, res_curr - ss_curr)
-        axis.set_ylabel(r'$I(t)$')
+        raise Exception(plot + ' is not a valid "plot" entry')
     axis.set_xlabel(r'Time $(t)$', fontsize=15)
 
 
 def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
-                             l_shift, ep):
-    """Plots current for systems at EP and outside EP.
+                             methods, eps, l_shift):
+    """Plots current for systems for varying parameters.
 
     Parameters:
     system -- ParallelDots object
     t_vec -- time vector
     rho_0 -- initial density matrix
     direction -- left/right
-    d_epsilons -- vector of delta epsilons, first entry at ep!
+    d_epsilons -- vector of delta epsilons
+    methods -- list of methods, 'ep', 'num' or 'diag'
+    eps -- list of ExceptionalPoint objects
     l_shift -- True to use lamb_shift
-    ep -- Exceptional point object
     """
     fig, ax = plt.subplots()
-    exc_points = len(d_epsilons)*[None]
-    exc_points[0] = ep
-    for exc_point, d_epsilon in zip(exc_points, d_epsilons):
+    # diffs = d_epsilons - DELTA_EPS
+    leg = []
+    for i, (ep, d_epsilon, method) in enumerate(zip(eps, d_epsilons, methods)):
         parallel_dots.change_delta_eps(d_epsilon)
         parallel_dots.solve(lamb_shift=l_shift)
-        plot_current(parallel_dots, t_vec, rho_0, direction, ax, ep=exc_point)
-    ax.legend(['EP', 'non-EP', 'non-EP2'], fontsize=15)
+        plot_current(parallel_dots, t_vec, rho_0, direction, ax, 'divide',
+                     method, ep)
+        # leg.append(f'$\Delta/\delta\epsilon_{{EP}}
+        #  = ${diffs[i]/DELTA_EPS: .2f}')
     ax.tick_params(axis='both', which='major', labelsize=13)
     ax.tick_params(axis='both', which='minor', labelsize=10)
-    # plt.savefig('../current_epvsnonep.png', dpi=400, bbox_inches='tight')
+    ax.legend(leg, fontsize=13)
+    # plt.savefig('../figures/current_close2ep.png', dpi=400,
+    #             bbox_inches='tight')
     plt.show()
 
 
-def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, ep):
+def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
+    """Plots current for varying initial conditions.
+
+    Parameters:
+    system -- ParallelDots object
+    t_vec -- time vector
+    rhos -- list of tuples representing linear combination of right
+            eigenvectors used as initial condition
+    consts -- list of tuples representing constants multiplying the terms
+              in the linear combination
+    direction -- left/right
+    method -- method of calculation
+    ep -- ExceptionalPoint object
+    """
+
     fig, axis = plt.subplots()
     leg = []
     for rho_tuple, const_tuple in zip(rhos, consts):
@@ -384,7 +413,8 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, ep):
         tot_overlap = sum(np.abs(ep.L.conj().T@rho_0))
         overlap = np.abs(np.vdot(ep.L[:, 2], rho_0))
         leg.append(f'Overlap = {np.real(overlap/tot_overlap):.2f}')
-        plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log', ep)
+        plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log',
+                     method, ep)
 
     # leg =
     # [r"$\rho_0 = \rho_{ss} + \rho'$", r"$\rho_0 = \rho_{ss} + \bar{\rho}$"]
@@ -397,32 +427,63 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, ep):
     plt.show()
 
 
-def plot_alpha_vs_dist(delta_eps, delta_epsilons, system):
+def plot_alpha_vs_dist(delta_eps, delta_epsilons, system, t_vec, alpha_len):
+    """Plots alpha vs the distance to the exceptional point.
 
-    alphas = []
+    alpha*rho_EP + (1-alpha)*rho_diag
+
+    Parameters:
+    delta_eps -- value of delta_epsilon at EP
+    delta_epsilons -- vectors of delta_epsilons
+    system -- ParallelDots object
+    t_vec -- vector of time points
+    alpha_len -- length of alpha vector
+    """
+
+    alphas = np.zeros((len(delta_epsilons),))
     dists = []
 
-    for d_eps in delta_epsilons:
+    for i, d_eps in enumerate(delta_epsilons):
         system.change_delta_eps(d_eps)
         system.solve(lamb_shift=l_shift)
         ep = ExceptionalPoint(system, 'full space')
         rho_0 = ep.R[:, 0] + ep.R[:, 2]
-        alpha = parallel_dots.optimize_alpha(ep, rho_0, tvec, alpha_len,
+        alpha = parallel_dots.optimize_alpha(ep, rho_0, t_vec, alpha_len,
                                              'length')
-        alphas.append(alpha)
+        alphas[i] = alpha
         dist = np.abs(ep.eigvals[ep.indices[1]] - ep.eigvals[ep.indices[0]])
         dists.append(dist)
 
-    fig, axis = plt.subplots()
-    # axis.set_xscale("log")
-    # axis.plot(dists, alphas, '.', markersize=10)
-    axis.plot(delta_epsilons - delta_eps, alphas, '.', markersize=10)
-    axis.set_xlabel('Distance between eigenvalues', fontsize=20)
-    axis.set_ylabel(r'$\alpha$', fontsize=20)
-    axis.tick_params(axis='both', which='major', labelsize=13)
-    axis.tick_params(axis='both', which='minor', labelsize=10)
-    # plt.savefig('../figures/alphavsdist.png', dpi=400, bbox_inches='tight')
+    # fig, (ax_eig, ax_eps) = plt.subplots(1, 2)
+    fig, ax_eps = plt.subplots()
+    # ax_eig.set_xscale("log")
+    # ax_eps.set_xscale("log")
+    # ax_eig.plot(dists, alphas, '.', markersize=10)
+    pos_ind = np.flatnonzero(delta_epsilons > delta_eps)
+    neg_ind = np.setdiff1d(np.arange(len(delta_epsilons)), pos_ind)
+    ax_eps.plot(delta_epsilons[pos_ind] - delta_eps, alphas[pos_ind], '.',
+                markersize=10, color='r')
+    ax_eps.plot(delta_epsilons[neg_ind] - delta_eps, alphas[neg_ind], '.',
+                markersize=10, color='c')
+    # ax_eig.set_xlabel('Distance between eigenvalues', fontsize=20)
+    ax_eps.set_ylabel(r'$\alpha$', fontsize=20)
+    ax_eps.set_xlabel('Distance from EP', fontsize=20)
+    ax_eps.tick_params(axis='both', which='major', labelsize=13)
+    ax_eps.tick_params(axis='both', which='minor', labelsize=10)
+    ax_eps.legend([r'$\Delta > 0$', r'$\Delta < 0$'], fontsize=15)
+
+    # plt.savefig('../figures/alphavsdiff.png', dpi=400, bbox_inches='tight')
     plt.show()
+
+
+def create_delta_eps(d_eps_ep):
+    delta_epsilons = np.array([d_eps_ep])
+    offsets = [2e-1*d_eps_ep, 4e-1*d_eps_ep]
+    for offset in offsets:
+        delta_epsilons = np.append(delta_epsilons, d_eps_ep + offset)
+        delta_epsilons = np.append(delta_epsilons, d_eps_ep - offset)
+
+    return delta_epsilons
 
 
 if __name__ == '__main__':
@@ -441,16 +502,10 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    tvec = np.linspace(0, 10, 500)
-    alpha_len = 100
-    delta_epsilons = np.empty(0)
-    for i in range(5, 20):
-        d_eps_floor = my_floor(DELTA_EPS, i)
-        d_eps_ceil = my_ceil(DELTA_EPS, i)
-        delta_epsilons = np.append(delta_epsilons, [d_eps_floor, d_eps_ceil])
-
-    critical_point = round(DELTA_EPS, 13)
-    extra_points = np.linspace(critical_point-5e-12, critical_point+5e-12, 10)
-    delta_epsilons = np.append(delta_epsilons, extra_points)
-    plot_alpha_vs_dist(DELTA_EPS, delta_epsilons, parallel_dots)
-    
+    ep = ExceptionalPoint(parallel_dots, 'full space')
+    d_epsilons = create_delta_eps(DELTA_EPS)
+    rho_0 = ep.R[:, 0] - ep.R[:, 2]
+    fig, ax = plt.subplots()
+    plot_current(parallel_dots, np.linspace(0, 10), rho_0, 'left', ax, 'normal', 'ep', ep)
+    plot_current(parallel_dots, np.linspace(0, 10), rho_0, 'right', ax, 'normal', 'ep', ep)
+    plt.show()

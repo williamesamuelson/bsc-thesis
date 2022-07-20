@@ -352,6 +352,18 @@ class ParallelDots(Builder):
         return self.calc_current(ss_rho, direction)
 
     def optimize_alpha(self, ep, rho_0, t_vec, alpha_len, norm):
+        """Finds alpha which minimizes error of linear combination.
+
+        Parameters:
+        ep - ExceptionalPoint object
+        rho_0 - Initial value
+        t_vec - vector of time points
+        alpha_len -- length of alpha vector
+        norm -- what norm to use 'max' or 'length'
+
+        Returns:
+        alpha -- the value of alpha which minimizes error
+        """
         dm_diag = np.array([self.dens_matrix_evo(time, rho_0)
                             for time in t_vec])
         dm_ep = np.array([self.dens_matrix_evo_ep(time, rho_0, ep)
@@ -372,4 +384,3 @@ class ParallelDots(Builder):
             norms_along_time = np.linalg.norm(diff_norms_along_dm, axis=1)
         alpha_index = np.argmin(norms_along_time)
         return alphas[alpha_index]
-

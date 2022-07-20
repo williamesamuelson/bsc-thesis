@@ -85,7 +85,7 @@ class ExceptionalPoint():
         elif method == 'inverse':
             L = np.linalg.inv(R).conj().T
         else:
-            raise Exception('Not a valid method')
+            raise Exception(method + ' is not a valid method')
 
         for i in range(len(self.eigvals)):
             # normalize L s.t L.conj()T@R = I
