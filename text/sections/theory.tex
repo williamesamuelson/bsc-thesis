@@ -1,0 +1,99 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../figs/}}}
+\begin{document}
+\subsection{Open quantum systems}
+\subsection{The Lindblad Master equation}
+\subsection{The Jordan normal form}
+In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
+\begin{equation}
+A = SDS^{-1},
+\end{equation}
+where $S = (v_1, \dots v_n)$ consists of the eigenvectors. The diagonalization process can always be done for Hamiltonians in quantum mechanics. The reason is that the Hamiltonian is an observable, which by the postulates in quantum mechanics always are Hermitian. This in turn means that the matrix representation is normal, and therefore diagonalizable.
+
+In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvectors coalesce. Then, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' ...$ obeying
+
+\begin{equation}
+\begin{aligned}
+    (A-\lambda_iI)r_i &= 0 \\
+    (A-\lambda_iI)r_i' &= r_i \\
+    (A-\lambda_iI)r_i'' &= r_i' \\
+    &\vdots \quad.
+\end{aligned}
+\end{equation}
+
+These vectors are also called generalized eigenvectors. Using this new basis and creating the change-of-basis matrix $M$ by forming
+
+\begin{equation}\label{chofba}
+    M = (\boldsymbol{r_1} \dots \boldsymbol{r}_q), \quad \text{where } \boldsymbol{r_i} = (r_i,\; r_i',\; r_i'' \dots), 
+\end{equation}
+
+the Jordan normal form $J$ of the matrix $A$ is obtained:
+
+\begin{equation}
+\begin{aligned}
+    A &= MJM^{-1}, \\ \quad \text{where } J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
+                                                         \vdots & \ddots & \vdots \\
+                                                         0 & \dots &  J_{n_q}(\lambda_q)\end{bmatrix} \quad
+      &\text{and } J_{n_i}(\lambda_i) = \begin{bmatrix} \lambda_i & 1 & \dots & 0 \\
+                                                                                        \vdots  & \ddots & \ddots & \vdots \\
+                                                                                        \vdots & & \ddots& 1 \\
+                                                                                        0 & \dots & \dots & \lambda_i\end{bmatrix}.
+\end{aligned}
+\end{equation}
+The Jordan form hence consist of $q$ blocks on the diagonal, each block of size $n_i$ consisting of its eigenvalue on the diagonal and ones on the super diagonal. Note that if all blocks are of size one, the Jordan form is diagonal.
+
+\subsection{Solution of ODEs}
+An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can be written as a matrix exponential in the following way:
+
+\begin{equation}
+    x(t) = e^{At}x(0), \text{ where } \;e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
+\end{equation}
+
+The matrix exponential can be simplified using Jordan decomposition. It can be shown that  $e^{At} = Me^{Jt}M^{-1}$ where 
+
+\begin{equation}
+    \begin{aligned}
+        e^{Jt} = &\begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
+                                                         \vdots & \ddots & \vdots \\
+                                                         0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix} \\
+            \text{ and } e^{J_{n_i}(\lambda_i)t} = e^{\lambda_it} &\begin{bmatrix} 1 & t & \dots & t^{n_i-1}/(n_i-1)! \\
+                                                                \vdots  & \ddots & \ddots & \vdots \\
+                                                                \vdots & & \ddots& t \\
+                                                            0 & \dots & \dots & 1\ \end{bmatrix}.
+    \end{aligned}
+\end{equation}
+
+In general, the matrix exponential therefore consists of entries with terms of the form $t^ke^{\lambda_it}$. Note that if $A$ is diagonalizable, all blocks are of size one and the terms are purely exponential. 
+
+Using this result, the solution can be written as 
+
+\begin{equation}\label{jordanode}
+    x(t) = Me^{Jt}M^{-1}x(0).
+\end{equation}
+
+This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ and $\boldsymbol{r}_i$ is defined in equation \ref{chofba}. By rewriting $M^{-1}$ as (EXPLAIN IN PREV SECTION?)
+
+
+\begin{equation}
+    M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix}
+\end{equation}
+
+and using equation \ref{jordanode}, the solution can be written as (MAYBE WRITE MORE STEPS)
+
+\begin{equation}\label{genmode}
+    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
+\end{equation}
+
+Hence, the solution stays in the initial Jordan chain throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes. 
+
+\begin{equation}
+    x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0)
+\end{equation}
+
+\end{document}
+
+
+
+
+
+

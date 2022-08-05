@@ -1,0 +1,28 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}
+\usepackage{subfiles}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[backend=biber, sorting=none, style=phys]{biblatex}
+\addbibresource{ref.bib}
+% \graphicspath{{figs/}}
+
+
+\begin{document}
+%\subfile{sections/title}
+\title{Dynamics at an exceptional point in an interacting quantum dot system}
+\author{William Samuelson}
+\date{\today}
+%\affiliation{Lund University}
+\maketitle
+\newpage
+\section{Introduction}
+\section{Theory}
+\subfile{sections/theory}
+
+
+% \bibliographystyle{apsrev4-2}
+% \bibliography{ref.bib}
+\end{document}
