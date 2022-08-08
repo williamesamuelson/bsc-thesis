@@ -1,18 +1,64 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figs/}}}
 \begin{document}
+\subsection{Transport through quantum dots}
 \subsection{Open quantum systems}
-\subsection{The Lindblad Master equation}
-\subsection{The Jordan normal form}
+Open quantum theory tries to deal with quantum systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of open quantum theory is to infer the equation of motion of the smaller system from the total closed system. 
+
+\subsubsection{The density operator}
+
+An important tool used in open quantum theory is the \textit{density operator} $\hat{\rho}$. In open quantum systems, it might only be known that the system is in states $\ket{\psi_i}$ with probabilities $p_i$. Then the system is said to be in an \textit{ensemble} $\{\ket{\psi_i}, p_i\}$. The density operator describes this information in a compact way:
+
+\begin{equation}
+    \hat{\rho} = \sum_i p_i \ket{\psi_i}\bra{\psi_i}.
+\end{equation}
+
+%The density operator can be represented by a basis dependent matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$.
+%The density operator is Hermitian, positive and has unit trace. 
+
+The average measured value of an observable $\hat O$ with respect to the ensemble $\{\ket{\psi_i}, p_i\}$, can be shown to be 
+
+\begin{equation}
+    \braket{\hat O} = \tr({\hat\rho \hat O}).
+\end{equation}
+
+From the density operator one can therefore extract all signifiant information from the ensemble. It is also possible to calculate how the density operator evolves over time. Under a Hamiltonian $\hat H$, the evolution is given by the von Neumann equation
+
+\begin{equation}\label{vonneumann}
+    i\hbar\diff{\hat\rho}{t} = [\hat H, \hat\rho] \equiv \mathcal{L}\hat\rho,
+\end{equation}
+
+where $\mathcal{L}$ is the \textit{Liouvillian superoperator}, or just the Liouvillian. 
+
+Connecting back to the mentioned goal of open quantum theory - How does one calculate the evolution of the density operator describing a subsystem connected to an environment? This question is solved by the \textit{reduced density operator}. If the total system $T$ consists of a subsystem $S$ and an environment $E$, then the reduced density matrix for the subsystem is given by
+
+\begin{equation}
+    \hat\rho_S = \tr_E({\hat\rho_T}),
+\end{equation}
+
+where $\tr_E$ is the partial trace over the environment. It is therefore possible to "trace out" the environment and obtain a density operator for the subsystem of interest which contain all measurement statistics of interest. This process is at the core of open quantum theory.
+
+\subsubsection{The Fock-Liouville space}
+The Liouvillian $\mathcal{L}$ in equation \ref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
+
+\subsubsection{The Lindblad Master equation}
+
+\subsection{Exceptional points}
 In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
-A = SDS^{-1},
+    A = SDS^{-1},
 \end{equation}
 where $S = (v_1, \dots v_n)$ consists of the eigenvectors. The diagonalization process can always be done for Hamiltonians in quantum mechanics. The reason is that the Hamiltonian is an observable, which by the postulates in quantum mechanics always are Hermitian. This in turn means that the matrix representation is normal, and therefore diagonalizable.
 
-In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvectors coalesce. Then, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' ...$ obeying
+In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvalues and their corresponding eigenvectors coalesce.
 
-\begin{equation}
+The Liouvillian matrix often depends on a set of parameters describing the system. If a point in this parameter space produces a defective matrix, the point is called an \textit{exceptional point} (EP). Exceptional points can be of different \textit{orders}, reflecting how many eigenvectors coalesce at the point. For example, if three eigenvectors coalesce, the EP is said to be of order three. 
+
+\subsection{Jordan normal form}
+
+For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' \dots$ defined by equation \ref{jordanchain}. The length of chain, $n_i$, is the same as the order of the corresponding EP.
+
+\begin{equation}\label{jordanchain}
 \begin{aligned}
     (A-\lambda_iI)r_i &= 0 \\
     (A-\lambda_iI)r_i' &= r_i \\
@@ -21,10 +67,10 @@ In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superop
 \end{aligned}
 \end{equation}
 
-These vectors are also called generalized eigenvectors. Using this new basis and creating the change-of-basis matrix $M$ by forming
+Using this new basis and creating the change-of-basis matrix $M$ by forming
 
 \begin{equation}\label{chofba}
-    M = (\boldsymbol{r_1} \dots \boldsymbol{r}_q), \quad \text{where } \boldsymbol{r_i} = (r_i,\; r_i',\; r_i'' \dots), 
+    M = (\boldsymbol{r}_1 \dots \boldsymbol{r}_q), \quad \text{where } \boldsymbol{r}_i = (r_i,\; r_i',\; r_i'' \dots), 
 \end{equation}
 
 the Jordan normal form $J$ of the matrix $A$ is obtained:
@@ -40,7 +86,7 @@ the Jordan normal form $J$ of the matrix $A$ is obtained:
                                                                                         0 & \dots & \dots & \lambda_i\end{bmatrix}.
 \end{aligned}
 \end{equation}
-The Jordan form hence consist of $q$ blocks on the diagonal, each block of size $n_i$ consisting of its eigenvalue on the diagonal and ones on the super diagonal. Note that if all blocks are of size one, the Jordan form is diagonal.
+The Jordan form hence consist of $q$ blocks on the diagonal, each block of size $n_i$ consisting of its eigenvalue on the diagonal and ones on the super diagonal. Note that if all blocks are of size one, i.e there are no exceptional points, the Jordan form is diagonal.
 
 \subsection{Solution of ODEs}
 An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can be written as a matrix exponential in the following way:
@@ -55,8 +101,8 @@ The matrix exponential can be simplified using Jordan decomposition. It can be s
     \begin{aligned}
         e^{Jt} = &\begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
                                                          \vdots & \ddots & \vdots \\
-                                                         0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix} \\
-            \text{ and } e^{J_{n_i}(\lambda_i)t} = e^{\lambda_it} &\begin{bmatrix} 1 & t & \dots & t^{n_i-1}/(n_i-1)! \\
+                                                         0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix} \text{, and } \\
+            e^{J_{n_i}(\lambda_i)t} = e^{\lambda_it} &\begin{bmatrix} 1 & t & \dots & t^{n_i-1}/(n_i-1)! \\
                                                                 \vdots  & \ddots & \ddots & \vdots \\
                                                                 \vdots & & \ddots& t \\
                                                             0 & \dots & \dots & 1\ \end{bmatrix}.
@@ -71,7 +117,7 @@ Using this result, the solution can be written as
     x(t) = Me^{Jt}M^{-1}x(0).
 \end{equation}
 
-This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ and $\boldsymbol{r}_i$ is defined in equation \ref{chofba}. By rewriting $M^{-1}$ as (EXPLAIN IN PREV SECTION?)
+This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in equation \ref{chofba}. By rewriting $M^{-1}$ as (EXPLAIN IN PREV SECTION?)
 
 
 \begin{equation}
@@ -81,13 +127,13 @@ This can further be decomposed if one considers the generalized modes of the sys
 and using equation \ref{jordanode}, the solution can be written as (MAYBE WRITE MORE STEPS)
 
 \begin{equation}\label{genmode}
-    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
+    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a,
 \end{equation}
 
-Hence, the solution stays in the initial Jordan chain throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes. 
+since $\boldsymbol{l}_j\boldsymbol{r}_i = \delta_{ij}I$, where $I$ is the $n_j\times n_i$ identity matrix. Hence, the solution stays in the space spanned by the initial condition throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes: 
 
 \begin{equation}
-    x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0)
+    x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0).
 \end{equation}
 
 \end{document}
