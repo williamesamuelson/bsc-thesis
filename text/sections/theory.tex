@@ -1,11 +1,31 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figs/}}}
 \begin{document}
+The theory part of the thesis is divided into five major sections. Firstly, a brief overview of the theory behind transport through quantum dots is given. Then the focus is put on some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final three sections will explain the notion of exceptional points, the Jordan normal form and lastly presenting a useful analytic form of the solution of a system of ordinary differential equations.
 \subsection{Transport through quantum dots}
-\subsection{Open quantum systems}
-Open quantum theory tries to deal with quantum systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of open quantum theory is to infer the equation of motion of the smaller system from the total closed system. 
+\subsubsection{Single electron transistor}
+To begin understanding the transport of electrons through a system of quantum dots, it is insightful to first study a simple system, known as a single electron transistor. Consider a single quantum dot with $N$ electrons capacitively coupled to a gate and coupled to source and drain reservoirs through tunnel junctions. (FIGURE) The main transport properties of the system can then be understood in terms of the chemical potentials of the quantum dot and the source and drain reservoirs. These are often depicted in electro-chemical potential diagrams, see figure X. There, $\mu(N)$ is the energy required to add the $N$th electron to the quantum dot, and $\mu_S$ and $\mu_D$ are the Fermi levels of the source and drain. The shaded areas represent the Fermi-Dirac distributions of the source and drain.
+ 
+Using this picture, the electron transport through the quantum dot can be easily visualized. If the chemical potential levels are located as in figure Y, $\mu(N + 1)$ is below $\mu_S$, and an electron will likely tunnel from the source onto the dot, increasing the number of electrons on the dot from $N$ to $N+1$. After the tunneling event, there is an even lower chemical potential available for the electron, $\mu_D$, and the electron will with a high probability leave the quantum dot and enter the drain. In this fashion, the system will cycle through having $N$ and $N+1$ electrons on the dot, producing a current.  
 
-\subsubsection{The density operator}
+It turns out that $\mu(N)$ depends linearly on the gate voltage $V_G$, so by changing it, the "ladder" of states in figure X can be lowered or raised. The drain voltage $V_D$ on the other hand, changes the spacing between $\mu_S$ and $\mu_D$. Through these two processes, it is possible to change the electro-chemical potential landscape and therefore control the current through the system. 
+
+\subsubsection{Master equations}
+An important tool for simulating the current through a quantum dot system is the master equation approach. A classical master equation is defined by
+
+\begin{equation}\label{master}
+    \diff{p_i}{t} = \text{Rate of entering state } i - \text{Rate of leaving state } i = \sum_j R_{ji}p_j  - \sum_j R_{ij}p_i
+\end{equation}
+
+with probabilities $p_i$ of being in state $i$, and transition rates $R_{ij}$ describing the rate of transitions from state $i$ to state $j$. For the single electron transistor, the states $i$ correspond to the number of electrons on the dot. The transition rates are typically related to the Fermi-Dirac distributions of the reservoirs and the tunneling rates of the barriers.
+
+Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods, such as the Runge-Kutta method. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each time point.
+
+While a classical master equation may give accurate results for a quantum system, it leaves out some important details. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section \ref{sec:lind}.
+\subsection{The theory of open quantum systems}
+Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the equation of motion of the smaller system from the equations of the total system. 
+
+\subsubsection{The von Neumann equation and the reduced density operator}
 
 An important tool used in open quantum theory is the \textit{density operator} $\hat{\rho}$. In open quantum systems, it might only be known that the system is in states $\ket{\psi_i}$ with probabilities $p_i$. Then the system is said to be in an \textit{ensemble} $\{\ket{\psi_i}, p_i\}$. The density operator describes this information in a compact way:
 
@@ -13,10 +33,10 @@ An important tool used in open quantum theory is the \textit{density operator} $
     \hat{\rho} = \sum_i p_i \ket{\psi_i}\bra{\psi_i}.
 \end{equation}
 
-%The density operator can be represented by a basis dependent matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$.
+Fixing a basis $\{\ket{\phi_i}\}$, the density operator can be represented by a matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$. The diagonal elements $\rho_{ii}$ represents classical probabilities of being in a state $\ket{\phi_i}$ and the off-diagonal elements $\rho_{ij}$ are the coherences of the system.
 %The density operator is Hermitian, positive and has unit trace. 
 
-The average measured value of an observable $\hat O$ with respect to the ensemble $\{\ket{\psi_i}, p_i\}$, can be shown to be 
+The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be
 
 \begin{equation}
     \braket{\hat O} = \tr({\hat\rho \hat O}).
@@ -39,9 +59,12 @@ Connecting back to the mentioned goal of open quantum theory - How does one calc
 where $\tr_E$ is the partial trace over the environment. It is therefore possible to "trace out" the environment and obtain a density operator for the subsystem of interest which contain all measurement statistics of interest. This process is at the core of open quantum theory.
 
 \subsubsection{The Fock-Liouville space}
-The Liouvillian $\mathcal{L}$ in equation \ref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
+The Liouvillian $\mathcal{L}$ in equation \ref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$, with a scalar product $\langle\braket{\rho_1|\rho_2}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
 
-\subsubsection{The Lindblad Master equation}
+\subsubsection{The Lindblad Master equation}\label{sec:lind}
+
+
+
 
 \subsection{Exceptional points}
 In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
@@ -109,7 +132,7 @@ The matrix exponential can be simplified using Jordan decomposition. It can be s
     \end{aligned}
 \end{equation}
 
-In general, the matrix exponential therefore consists of entries with terms of the form $t^ke^{\lambda_it}$. Note that if $A$ is diagonalizable, all blocks are of size one and the terms are purely exponential. 
+In general, the matrix exponential therefore consists of entries with terms of the form $t^ke^{\lambda_it}$. Note that if $A$ is diagonalizable, all blocks are of size one and the entries consist of pure exponentials on the diagonal. 
 
 Using this result, the solution can be written as 
 
