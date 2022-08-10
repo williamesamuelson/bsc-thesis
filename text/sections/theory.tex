@@ -21,7 +21,7 @@ with probabilities $p_i$ of being in state $i$, and transition rates $R_{ij}$ de
 
 Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods, such as the Runge-Kutta method. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each time point.
 
-While a classical master equation may give accurate results for a quantum system, it leaves out some important details. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section \ref{sec:lind}.
+While a classical master equation may give accurate results for a quantum system, it leaves out some important physics. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section \ref{sec:lind}.
 \subsection{The theory of open quantum systems}
 Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the equation of motion of the smaller system from the equations of the total system. 
 
@@ -36,13 +36,13 @@ An important tool used in open quantum theory is the \textit{density operator} $
 Fixing a basis $\{\ket{\phi_i}\}$, the density operator can be represented by a matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$. The diagonal elements $\rho_{ii}$ represents classical probabilities of being in a state $\ket{\phi_i}$ and the off-diagonal elements $\rho_{ij}$ are the coherences of the system.
 %The density operator is Hermitian, positive and has unit trace. 
 
-The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be
+The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be given by equation \ref{exp}. From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system.
 
-\begin{equation}
+\begin{equation}\label{exp}
     \braket{\hat O} = \tr({\hat\rho \hat O}).
 \end{equation}
 
-From the density operator one can therefore extract all signifiant information from the ensemble. It is also possible to calculate how the density operator evolves over time. Under a Hamiltonian $\hat H$, the evolution is given by the von Neumann equation
+It is also possible to calculate how the density operator evolves over time. Under a Hamiltonian $\hat H$, the evolution is given by the von Neumann equation
 
 \begin{equation}\label{vonneumann}
     i\hbar\diff{\hat\rho}{t} = [\hat H, \hat\rho] \equiv \mathcal{L}\hat\rho,
@@ -56,26 +56,38 @@ Connecting back to the mentioned goal of open quantum theory - How does one calc
     \hat\rho_S = \tr_E({\hat\rho_T}),
 \end{equation}
 
-where $\tr_E$ is the partial trace over the environment. It is therefore possible to "trace out" the environment and obtain a density operator for the subsystem of interest which contain all measurement statistics of interest. This process is at the core of open quantum theory.
+where $\tr_E$ is the partial trace over the environment. It is therefore possible to "trace out" the environment and obtain a density operator for the subsystem of interest. The reduced density operator contain all measurement statistics of interest in the subsystem, placing it at the core of the theory of open quantum systems.
 
 \subsubsection{The Fock-Liouville space}
 The Liouvillian $\mathcal{L}$ in equation \ref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$, with a scalar product $\langle\braket{\rho_1|\rho_2}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
 
 \subsubsection{The Lindblad Master equation}\label{sec:lind}
+The starting point for quantum master equations is the von Neumann equation (eq. \ref{vonneumann}) for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix $\hat\rho$ of the system of interest can be obtained. However, the resulting equation generally still includes the total density operator and is impossible to solve. The approximations required to find a solution can be done in many different ways and is essentially what differs the quantum master equations apart.
 
+One of the main examples of a quantum master equation is the \textit{Lindblad equation}. The scheme used to derive the Lindblad equation is based on two major assumptions. The first is to assume that the strength of the interaction between the system and the environment is weak. It is therefore possible to treat the interaction perturbatively, which in the Lindblad approach is used to drop terms of $\mathcal{O}(\alpha^3)$ or higher. (what is alpha?) The second main approximation is to assume that the interaction between the system and the environment is Markovian. A Markovian process is one in which the next time step only depends on the current state of the system. In a quantum dot system, this can be interpreted to mean that the leads "forget" that they have lost or gained an electron, right after the tunneling process has happened. Since the number of electrons in the leads typically is large, this can be a reasonable approximation for such systems. 
 
+Applying these approximations to the von Neumann equation, the Lindblad equation can be derived:
 
+\begin{equation}\label{eq: lind}
+    \diff{\hat\rho}{t} = i[\hat\rho, \hat H_\text{eff}] + \sum_i \hat L_i\hat\rho\hat L_i^\dag - \frac{1}{2}\hat\rho\hat L_i^\dag\hat L_i - \frac{1}{2}\hat L_i^\dag\hat L_i \hat\rho \equiv \mathcal{L}\hat\rho,
+\end{equation}
 
-\subsection{Exceptional points}
+where $\hat H_\text{eff}$ consists of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment. The $\hat L_i$'s are the so called \textit{jump operators}, which capture the coupling processes to the environment. ($\hbar=1$) The first term of the Lindblad equation is Hermitian and the second is non-Hermitian. The matrix representation of the Liouvillian is therefore not necessarily Hermitian, which will enable the possibility of exceptional points. More about this in section \ref{sec: ep}.
+
+One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
+
+One method for calculating the jump operators is described in ref X. There, a phenomenological approach is proposed, where the jump operators "carries information of both the spatial and energetic properties of the jump process". Using this PERLind approach, the jump operators are calculated using well defined steps, and can be applied in a wide range of systems. Once the jump operators are constructed and the first term of equation \ref{eq: lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. Finally, equation \ref{eq: lind} can be solved, resulting in the evolution of the density matrix to be known. Using equation \ref{exp}, the dynamics of any relevant observable of the system can be simulated.
+
+\subsection{Exceptional points}\label{sec: ep}
 In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
 \end{equation}
-where $S = (v_1, \dots v_n)$ consists of the eigenvectors. The diagonalization process can always be done for Hamiltonians in quantum mechanics. The reason is that the Hamiltonian is an observable, which by the postulates in quantum mechanics always are Hermitian. This in turn means that the matrix representation is normal, and therefore diagonalizable.
+where $S = (v_1, \dots ,v_n)$ consists of the eigenvectors. The diagonalization process can always be done for Hamiltonians in quantum mechanics. The reason is that the Hamiltonian is an observable, which by the postulates in quantum mechanics always are Hermitian. This in turn means that the matrix representation is normal, and therefore diagonalizable.
 
 In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvalues and their corresponding eigenvectors coalesce.
 
-The Liouvillian matrix often depends on a set of parameters describing the system. If a point in this parameter space produces a defective matrix, the point is called an \textit{exceptional point} (EP). Exceptional points can be of different \textit{orders}, reflecting how many eigenvectors coalesce at the point. For example, if three eigenvectors coalesce, the EP is said to be of order three. 
+The Liouvillian matrix depends on a set of parameters describing the system. If a point in this parameter space produces a defective matrix, the point is called an \textit{exceptional point} (EP). Exceptional points can be of different \textit{orders}, reflecting how many eigenvectors coalesce at the point. For example, if three eigenvectors coalesce, the EP is said to be of order three. The notion of exceptional points is tightly connected to a type of matrix decomposition, the Jordan normal form, which will be explained in the following section.
 
 \subsection{Jordan normal form}
 
