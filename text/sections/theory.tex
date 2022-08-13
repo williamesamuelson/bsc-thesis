@@ -1,5 +1,5 @@
 \documentclass[../main.tex]{subfiles}
-\graphicspath{{\subfix{../figs/}}}
+\graphicspath{{\subfix{../figures/}}}
 \begin{document}
 The theory part of the thesis is divided into five major sections. Firstly, a brief overview of the theory behind transport through quantum dots is given. Then, the focus is put on some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final three sections will explain the notion of exceptional points, the Jordan normal form and lastly present a useful analytic form of the solution of a system of ordinary differential equations.
 \subsection{The system}
@@ -24,7 +24,7 @@ with probabilities $p_i$ of being in state $i$, and transition rates $R_{ij}$ de
 
 Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods, such as the Runge-Kutta method. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each time point.
 
-While a classical master equation may give accurate results for a quantum system, it leaves out some important physics. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section \ref{sec:lind}.
+While a classical master equation may give accurate results for a quantum system, it leaves out some important physics. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section~\ref{sec:lind}.
 \subsection{The theory of open quantum systems}
 Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the equation of motion of the smaller system from the equations of the total system. 
 
@@ -39,7 +39,7 @@ An important tool used in open quantum theory is the \textit{density operator} $
 Fixing a basis $\{\ket{\phi_i}\}$, the density operator can be represented by a matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$. The diagonal elements $\rho_{ii}$ represents classical probabilities of being in a state $\ket{\phi_i}$ and the off-diagonal elements $\rho_{ij}$ are the coherences of the system.
 %The density operator is Hermitian, positive and has unit trace. 
 
-The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be given by equation \ref{exp}. From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system.
+The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be given by equation~\eqref{exp}. From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system.
 
 \begin{equation}\label{exp}
     \braket{\hat O} = \tr({\hat\rho \hat O}).
@@ -62,26 +62,26 @@ Connecting back to the mentioned goal of open quantum theory - How does one calc
 where $\tr_E$ is the partial trace over the environment. It is therefore possible to "trace out" the environment and obtain a density operator for the subsystem of interest. The reduced density operator contain all measurement statistics of interest in the subsystem, placing it at the core of the theory of open quantum systems.
 
 \subsubsection{The Fock-Liouville space}
-The Liouvillian $\mathcal{L}$ in equation \ref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$, with a scalar product $\langle\braket{\rho_1|\rho_2}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
+The Liouvillian $\mathcal{L}$ in equation~\eqref{vonneumann} is an operator acting on an operator, which is why it is called a superoperator. To be able to more easily handle the Liouvillian, it is possible to treat it as a normal operator represented by a matrix, acting on a Hilbert space spanned by the density matrices. The density matrix is therefore effectively transformed into a vector, usually written as $\ket{\rho}\rangle$, with a scalar product $\langle\braket{\rho_1|\rho_2}\rangle$. The Hilbert space spanned by these vectors is called the Fock-Liouville space.
 
 \subsubsection{The Lindblad Master equation}\label{sec:lind}
-The starting point for quantum master equations is the von Neumann equation (eq. \ref{vonneumann}) for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix $\hat\rho$ of the system of interest can be obtained. However, the resulting equation generally still includes the total density operator and is impossible to solve. The approximations required to find a solution can be done in many different ways and is essentially what differs the quantum master equations apart.
+The starting point for quantum master equations is the von Neumann equation (eq.~\eqref{vonneumann}) for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix $\hat\rho$ of the system of interest can be obtained. However, the resulting equation generally still includes the total density operator and is impossible to solve. The approximations required to find a solution can be done in many different ways and is essentially what differs the quantum master equations apart.
 
 One of the main examples of a quantum master equation is the \textit{Lindblad equation}. The scheme used to derive the Lindblad equation is based on two major assumptions. The first is to assume that the strength of the interaction between the system and the environment is weak. It is therefore possible to treat the interaction perturbatively, which in the Lindblad approach is used to drop terms of $\mathcal{O}(\alpha^3)$ or higher. (what is alpha?) The second main approximation is to assume that the interaction between the system and the environment is Markovian. A Markovian process is one in which the next time step only depends on the current state of the system. In a quantum dot system, this can be interpreted to mean that the leads "forget" that they have lost or gained an electron, right after the tunneling process has happened. Since the number of electrons in the leads typically is large, this can be a reasonable approximation for such systems. 
 
 Applying these approximations to the von Neumann equation, the Lindblad equation can be derived:
 
-\begin{equation}\label{eq: lind}
+\begin{equation}\label{eq:lind}
     \diff{\hat\rho}{t} = i[\hat\rho, \hat H_\text{eff}] + \sum_i \hat L_i\hat\rho\hat L_i^\dag - \frac{1}{2}\hat\rho\hat L_i^\dag\hat L_i - \frac{1}{2}\hat L_i^\dag\hat L_i \hat\rho \equiv \mathcal{L}\hat\rho,
 \end{equation}
 
-where $\hat H_\text{eff}$ consists of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment. The $\hat L_i$'s are the so called \textit{jump operators}, which capture the coupling processes to the environment. ($\hbar=1$) The first term of the Lindblad equation is Hermitian and the second is non-Hermitian. The matrix representation of the Liouvillian is therefore not necessarily Hermitian, which will enable the possibility of exceptional points. More about this in section \ref{sec: ep}.
+where $\hat H_\text{eff}$ consists of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment. The $\hat L_i$'s are the so called \textit{jump operators}, which capture the coupling processes to the environment. ($\hbar=1$) The first term of the Lindblad equation is Hermitian and the second is non-Hermitian. The matrix representation of the Liouvillian is therefore not necessarily Hermitian, which will enable the possibility of exceptional points. More about this in section~\ref{sec:ep}.
 
 One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
-One method for calculating the jump operators is described in ref X. There, a phenomenological approach is proposed, where the jump operators "carries information of both the spatial and energetic properties of the jump process". Using this PERLind approach, the jump operators are calculated using well defined steps, and can be applied in a wide range of systems. Once the jump operators are constructed and the first term of equation \ref{eq: lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. Finally, equation \ref{eq: lind} can be solved, resulting in the evolution of the density matrix to be known. Using equation \ref{exp}, the dynamics of any relevant observable of the system can be simulated.
+One method for calculating the jump operators is described in ref X. There, a phenomenological approach is proposed, where the jump operators "carries information of both the spatial and energetic properties of the jump process". Using this PERLind approach, the jump operators are calculated using well defined steps, and can be applied in a wide range of systems. Once the jump operators are constructed and the first term of equation~\eqref{eq:lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. Finally, equation~\eqref{eq:lind} can be solved, resulting in the evolution of the density matrix to be known. Using equation~\eqref{exp}, the dynamics of any relevant observable of the system can be simulated.
 
-\subsection{Exceptional points}\label{sec: ep}
+\subsection{Exceptional points}\label{sec:ep}
 In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
@@ -94,7 +94,7 @@ The Liouvillian matrix depends on a set of parameters describing the system. If 
 
 \subsection{Jordan normal form}
 
-For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' \dots$ defined by equation \ref{jordanchain}. The length of chain, $n_i$, is the same as the order of the corresponding EP.
+For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' \dots$ defined by equation~\ref{jordanchain}. The length of chain, $n_i$, is the same as the order of the corresponding EP.
 
 \begin{equation}\label{jordanchain}
 \begin{aligned}
@@ -130,7 +130,7 @@ The Jordan form hence consist of $q$ blocks on the diagonal, each block of size 
 An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can be written as a matrix exponential in the following way:
 
 \begin{equation}
-    x(t) = e^{At}x(0), \text{ where } \;e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
+    x(t) = e^{At}x(0), \;\text{where } \;e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
 \end{equation}
 
 The matrix exponential can be simplified using Jordan decomposition. It can be shown that  $e^{At} = Me^{Jt}M^{-1}$ where 
@@ -155,14 +155,14 @@ Using this result, the solution can be written as
     x(t) = Me^{Jt}M^{-1}x(0).
 \end{equation}
 
-This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in equation \ref{chofba}. By rewriting $M^{-1}$ as (EXPLAIN IN PREV SECTION?)
+This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in equation~\eqref{chofba}. By rewriting $M^{-1}$ as (EXPLAIN IN PREV SECTION?)
 
 
 \begin{equation}
     M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix}
 \end{equation}
 
-and using equation \ref{jordanode}, the solution can be written as (MAYBE WRITE MORE STEPS)
+and using equation~\eqref{jordanode}, the solution can be written as (MAYBE WRITE MORE STEPS)
 
 \begin{equation}\label{genmode}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a,
