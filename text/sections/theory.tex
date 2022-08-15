@@ -1,32 +1,56 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figures/}}}
 \begin{document}
-The theory part of the thesis is divided into six sections. Firstly, the model of the double dot system will be introduced. Then, a brief overview of the theory behind transport through quantum dots is given. The focus is then put on some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final three sections will explain the notion of exceptional points, the Jordan normal form and lastly present a useful analytic form of the solution of a system of ordinary differential equations.
-\subsection{The system}
-It is also assumed that each dot is restricted to be either empty or contain one electron, which reduces the dimension of the problem to a (?) degree. Furthermore, the coupling between the dots and the leads are assumed to have two properties: that it can be described by a Markovian interaction, and that it is weak. (reasonable assumptions?) These last assumptions enables the use of the Lindblad master equation to calculate the Liouvillian operator of the system.
+The theory part of the thesis is divided into six sections. Firstly, the model of the double dot system will be introduced in more detail. Then, a brief overview of the theory behind transport through quantum dots is given. The focus is then put on some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final three sections will explain the notion of exceptional points, the Jordan normal form and lastly present a useful analytic form of the solution of a system of ordinary differential equations.
+\subsection{The system}\label{sec:sys}
+The system which was studied in this thesis is essentially given by figure~\ref{fig:model}, with a few assumptions and modifications. To reduce the dimension of the parameter space, a fixed tunneling rate $\Gamma$ and a variable tunneling detuning $\delta\Gamma$ are introduced. The four tunneling rates in terms of $\Gamma$ and $\delta\Gamma$ are assumed to be symmetrically given by figure~\ref{fig:model2}. It is also assumed that each dot is restricted to be either empty or contain one electron in the ground state of the dot. The energy of the ground state is given by a fixed gate voltage $V_\text{G}=0$ and a variable energy detuning $\delta\epsilon$: $\epsilon_{1/2} = -V_\text{G} \pm \delta\epsilon$. Furthermore, the temperatures of the leads $T_\text{L}=T_\text{R}=10\Gamma$, the chemical potentials $\mu_\text{L/R} = \pm V_\text{SD}/2$, the bias voltage $V_\text{SD} = 300\Gamma$, and the charging energy $U = 250\Gamma$, are all treated as constants. The charging energy being the extra energy needed to enter a quantum dot if the other dot is already occupied due to Coulomb interaction (?). This leaves the two tuning parameters, $\delta\Gamma$ and $\delta\epsilon$, as the only parameters of the system, resulting in a two dimensional parameter space. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/model.pdf}
+    \caption{hej}
+    \label{fig:model2}
+\end{figure}
+
+The full Hamiltonian of the system is then given by $\hat H = \hat H_\text{QD} + \hat H_\text{leads} + \hat H_\text{coup}$ where the three terms correspond to the quantum dot, lead, and coupling Hamiltonians. By considering all the tunneling processes, these terms can be shown to be given by
+\begin{equation}
+    \begin{aligned}
+        \hat H_\text{QD} &= (-V_\text{G} - \delta\epsilon) \hat d_1^\dag \hat d_1  +  (-V_\text{G} + \delta\epsilon)\hat d_2^\dag \hat d_2 + U\hat d_1^\dag \hat d_1 \hat d_2^\dag \hat d_2, \\
+        \hat H_\text{leads} &= \sum_{k} (E_{L,k} \hat c_{L,k}^\dag \hat c_{L,k}  + E_{R,k} \hat c_{R,k}^\dag \hat c_{R,k}), \\
+        \hat H_\text{coup} &= \sum_k (t_{L,1} \hat d_1^\dag \hat c_{L,k} + t_{L,2} \hat d_2^\dag \hat c_{L,k} + t_{R,1} \hat d_1^\dag \hat c_{R,k} + t_{R,2} \hat d_2^\dag \hat c_{R,k}) + \text{H.c},
+    \end{aligned}
+\end{equation}
+where $\hat d_{1/2}^\dag$ creates an electron in dot 1 or 2, and $\hat c_{L/R,k}^\dag$ creates an electron in the left or right lead with quantum number $k$ and energy $E_{L/R,k}$. The tunneling amplitudes $t_{L/R,1/2}$ are directly related to the corresponding tunneling rates $\Gamma_{L/R,1/2}$. 
+
+To be able to simulate the dynamics of the system, a couple more approximations have to be made regarding the coupling between the dots and the leads. (reasonable assumptions?) The first is to assume that the strength of the interaction between the system and the environment is weak. It is therefore possible to treat the interaction perturbatively in terms of the tunneling rate $\Gamma$. The second main approximation is to assume that the interaction between the system and the environment is Markovian. A Markovian process is one in which the next time step only depends on the current state of the system. In a quantum dot system, this can be interpreted to mean that the leads "forget" that they have lost or gained an electron, right after the tunneling process has happened. Since the number of electrons in the leads typically is large, this can be a reasonable approximation for such systems.
+
+These last two assumptions are made to motivate the use of a common tool used to simulate open quantum systems, the Lindblad master equation. The next two sections will introduce the theory necessary to understand its uses and origin.
 
 \subsection{Transport through quantum dots}
-\subsubsection{Single electron transistor}
-To begin understanding the transport of electrons through a system of quantum dots, it is insightful to first study a simple system, known as a single electron transistor. The following explanation is inspired by the article in reference~\cite{transport}.
+\subsubsection{A simple example}
+To begin understanding the transport of electrons through a system of quantum dots, it is insightful to first study the single quantum dot system. The following explanation is inspired by the article in reference~\cite{transport}.
 
-Consider a single quantum dot with $N$ electrons capacitively coupled to a gate and coupled to source and drain reservoirs through tunnel junctions, see figure~\ref{fig:qdotscheme}. The main transport properties of the system can then be understood in terms of the chemical potentials of the quantum dot and the source and drain reservoirs. These are often depicted in electro-chemical potential diagrams, see figure X. There, $\mu(N)$ is the energy required to add the $N$th electron to the quantum dot, and $\mu_S$ and $\mu_D$ are the Fermi levels of the source and drain. The shaded areas represent the Fermi-Dirac distributions of the source and drain.
- 
-Using this picture, the electron transport through the quantum dot can be easily visualized. If the chemical potential levels are located as in figure Y, $\mu(N + 1)$ is below $\mu_S$, and an electron will likely tunnel from the source onto the dot, increasing the number of electrons on the dot from $N$ to $N+1$. After the tunneling event, there is an even lower chemical potential available for the electron, $\mu_D$, and the electron will with a high probability leave the quantum dot and enter the drain. In this fashion, the system will cycle through having $N$ and $N+1$ electrons on the dot, producing a current.  
+Consider a single quantum dot with $N$ electrons capacitively coupled to a gate and coupled to source and drain reservoirs through tunnel junctions, see figure~\ref{fig:qdotscheme}. The main transport properties of the system can then be understood in terms of the chemical potentials of the quantum dot and the source and drain reservoirs. These are often depicted in electro-chemical potential diagrams, see figure~\ref{fig:ladder}. There, $\mu(N)$ is the energy required to add the $N$th electron to the quantum dot, and $\mu_S$ and $\mu_D$ are the Fermi levels of the source and drain. The shaded areas represent the Fermi-Dirac distributions of the source and drain.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/ladder.png}
+    \caption{hej}
+    \label{fig:ladder}
+\end{figure}
+Using this picture, the electron transport through the quantum dot can be easily visualized. If the chemical potential levels are located as in figure~\ref{fig:ladder}, $\mu(N + 1)$ is below $\mu_S$, and an electron will likely tunnel from the source onto the dot, increasing the number of electrons on the dot from $N$ to $N+1$. After the tunneling event, there is an even lower chemical potential available for the electron, $\mu_D$, and the electron will with a high probability leave the quantum dot and enter the drain. In this fashion, the system will cycle through having $N$ and $N+1$ electrons on the dot, producing a current.  
 
-It turns out that $\mu(N)$ depends linearly on the gate voltage $V_G$, so by changing it, the "ladder" of states in figure X can be lowered or raised. The drain voltage $V_D$ on the other hand, changes the spacing between $\mu_S$ and $\mu_D$. Through these two processes, it is possible to change the electro-chemical potential landscape and therefore control the current through the system. 
+It turns out that $\mu(N)$ depends linearly on the gate voltage $V_G$, so by changing it, the "ladder" of states in figure~\ref{fig:ladder} can be lowered or raised. The drain voltage $V_D$ on the other hand, changes the spacing between $\mu_S$ and $\mu_D$. Through these two processes, it is possible to change the electro-chemical potential landscape and therefore control the current through the system. 
 
 \subsubsection{Master equations}
 An important tool for simulating the current through a quantum dot system is the master equation approach. A classical master equation is defined by
-
 \begin{equation}\label{master}
     \diff{p_i}{t} = \text{Rate of entering state } i - \text{Rate of leaving state } i = \sum_j R_{ji}p_j  - \sum_j R_{ij}p_i
 \end{equation}
+with probabilities $p_i$ of being in state $i$, and transition rates $R_{ij}$ describing the rate of transitions from state $i$ to state $j$. For the single quantum dot system, the states $i$ correspond to the number of electrons on the dot. The transition rates are typically related to the Fermi-Dirac distributions of the reservoirs and the tunneling rates of the barriers~\cite{transport}.
 
-with probabilities $p_i$ of being in state $i$, and transition rates $R_{ij}$ describing the rate of transitions from state $i$ to state $j$. For the single electron transistor, the states $i$ correspond to the number of electrons on the dot. The transition rates are typically related to the Fermi-Dirac distributions of the reservoirs and the tunneling rates of the barriers.
+Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods, such as the Runge-Kutta method. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each time point~\cite{transport}.
 
-Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods, such as the Runge-Kutta method. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each time point.
-
-While a classical master equation may give accurate results for a quantum system, it leaves out some important physics. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will further be delved upon in section~\ref{sec:lind}.
+While a classical master equation may give accurate results for some quantum systems, it leaves out some important physics. A \textit{quantum master equation} generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also \textit{coherences}, which are necessary to describe a quantum system fully. This topic will be developed in more detail in section~\ref{sec:lind}.
 \subsection{The theory of open quantum systems}
 Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the regular quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the equation of motion of the smaller system from the equations of the total system. 
 
@@ -69,34 +93,30 @@ The Liouvillian $\mathcal{L}$ in equation~\eqref{vonneumann} is an operator acti
 \subsubsection{The Lindblad Master equation}\label{sec:lind}
 The starting point for quantum master equations is the von Neumann equation (eq.~\eqref{vonneumann}) for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix $\hat\rho$ of the system of interest can be obtained. However, the resulting equation generally still includes the total density operator and is impossible to solve. The approximations required to find a solution can be done in many different ways and is essentially what differs the quantum master equations apart.
 
-One of the main examples of a quantum master equation is the \textit{Lindblad equation}. The scheme used to derive the Lindblad equation is based on two major assumptions. The first is to assume that the strength of the interaction between the system and the environment is weak. It is therefore possible to treat the interaction perturbatively, which in the Lindblad approach is used to drop terms of $\mathcal{O}(\alpha^3)$ or higher. (what is alpha?) The second main approximation is to assume that the interaction between the system and the environment is Markovian. A Markovian process is one in which the next time step only depends on the current state of the system. In a quantum dot system, this can be interpreted to mean that the leads "forget" that they have lost or gained an electron, right after the tunneling process has happened. Since the number of electrons in the leads typically is large, this can be a reasonable approximation for such systems. 
-
+One of the most famous quantum master equations is the Lindblad equation. As described in section~\ref{sec:sys}, the Lindblad equation is based on two major approximations: that the system-bath interaction is Markovian, and weak.
 Applying these approximations to the von Neumann equation, the Lindblad equation can be derived:
 
 \begin{equation}\label{eq:lind}
     \diff{\hat\rho}{t} = i[\hat\rho, \hat H_\text{eff}] + \sum_i \hat L_i\hat\rho\hat L_i^\dag - \frac{1}{2}\hat\rho\hat L_i^\dag\hat L_i - \frac{1}{2}\hat L_i^\dag\hat L_i \hat\rho \equiv \mathcal{L}\hat\rho,
 \end{equation}
+where $\hat H_\text{eff}$ consists of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment. The $\hat L_i$'s are the so called \textit{jump operators}, which capture the coupling processes to the environment. ($\hbar=1$) One method for calculating the jump operators is described in ref~\cite{perlind}. There, a phenomenological approach is proposed. Using this so called PERLind approach, the jump operators are calculated using well defined steps, and can be applied in a wide range of systems. Once the jump operators are constructed and the first term of equation~\eqref{eq:lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. Due to their dissipative nature, the last three terms of the Lindblad equation are non-Hermitian. The matrix representation of the full Liouvillian is therefore not necessarily Hermitian, which will enable the possibility of exceptional points.
 
-where $\hat H_\text{eff}$ consists of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment. The $\hat L_i$'s are the so called \textit{jump operators}, which capture the coupling processes to the environment. ($\hbar=1$) The first term of the Lindblad equation is Hermitian and the second is non-Hermitian. The matrix representation of the Liouvillian is therefore not necessarily Hermitian, which will enable the possibility of exceptional points. More about this in section~\ref{sec:ep}.
+%One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
-One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
-One method for calculating the jump operators is described in ref X. There, a phenomenological approach is proposed, where the jump operators "carries information of both the spatial and energetic properties of the jump process". Using this PERLind approach, the jump operators are calculated using well defined steps, and can be applied in a wide range of systems. Once the jump operators are constructed and the first term of equation~\eqref{eq:lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. Finally, equation~\eqref{eq:lind} can be solved, resulting in the evolution of the density matrix to be known. Using equation~\eqref{exp}, the dynamics of any relevant observable of the system can be simulated.
 
 \subsection{Exceptional points}\label{sec:ep}
-In quantum mechanics, a common way to perform calculations is to diagonalize the matrix representation of the Hamiltonian. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
+In quantum mechanics, a common way to simplify a calculation is to diagonalize the matrix representation of the operator describing the system. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
 \end{equation}
-where $S = (v_1, \dots ,v_n)$ consists of the eigenvectors. The diagonalization process can always be done for Hamiltonians in quantum mechanics. The reason is that the Hamiltonian is an observable, which by the postulates in quantum mechanics always are Hermitian. This in turn means that the matrix representation is normal, and therefore diagonalizable.
+where $S = (v_1, \dots ,v_n)$ consists of the eigenvectors of $A$.
 
-In Liouvillian physics, there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvalues and their corresponding eigenvectors coalesce.
+In Liouvillian physics, we have seen that there are non-Hermitian parts in the Liouvillian superoperator. The matrix representation of the Liouvillian is hence not necessarily diagonalizable, but can be defective. If a matrix is defective, two or more eigenvalues and their corresponding eigenvectors coalesce. The Liouvillian matrix depends on a set of parameters describing the system. If a point in this parameter space produces a defective matrix, the point is called an \textit{exceptional point} (EP). Exceptional points can be of different \textit{orders}, reflecting how many eigenvectors coalesce at the point. For example, if three eigenvectors coalesce, the EP is said to be of order three. The notion of exceptional points and its orders is tightly connected to a type of matrix decomposition, the Jordan normal form.
 
-The Liouvillian matrix depends on a set of parameters describing the system. If a point in this parameter space produces a defective matrix, the point is called an \textit{exceptional point} (EP). Exceptional points can be of different \textit{orders}, reflecting how many eigenvectors coalesce at the point. For example, if three eigenvectors coalesce, the EP is said to be of order three. The notion of exceptional points is tightly connected to a type of matrix decomposition, the Jordan normal form, which will be explained in the following section.
+\subsubsection{Jordan normal form}
 
-\subsection{Jordan normal form}
-
-For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i'$, $r_i'' \dots$ defined by equation~\ref{jordanchain}. The length of chain, $n_i$, is the same as the order of the corresponding EP.
+For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible. Fortunately, there is a notion of an "almost diagonal" form, called the Jordan normal form. Recall that in the diagonalizable case, the basis was changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using \textit{Jordan chains}, which for each defective eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i, r_i'$, $r_i'' \dots$ defined by equation~\ref{jordanchain}. The length of chain, $n_i$, is the same as the order of the corresponding EP.
 
 \begin{equation}\label{jordanchain}
 \begin{aligned}
@@ -106,7 +126,6 @@ For a defective matrix, there does not exist a basis of eigenvectors, and the di
     &\vdots \quad.
 \end{aligned}
 \end{equation}
-
 Using this new basis and creating the change-of-basis matrix $M$ by forming
 
 \begin{equation}\label{chofba}
@@ -128,7 +147,7 @@ the Jordan normal form $J$ of the matrix $A$ is obtained:
 \end{equation}
 The Jordan form hence consist of $q$ blocks on the diagonal, each block of size $n_i$ consisting of its eigenvalue on the diagonal and ones on the super diagonal. Note that if all blocks are of size one, i.e there are no exceptional points, the Jordan form is diagonal.
 
-\subsection{Solution of ODEs}
+\subsubsection{Solution of ODEs for exceptional points}
 An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can be written as a matrix exponential in the following way:
 
 \begin{equation}
