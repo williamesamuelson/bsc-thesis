@@ -141,40 +141,50 @@ def calc_tuning(delta_epsilons, system, lamb_shift):
 
     for i, delta_e in enumerate(delta_epsilons):
         system.change_delta_eps(delta_e)
-        system.solve(lamb_shift=lamb_shift, currentq=False)  # masterq=False??
+        system.solve(lamb_shift=lamb_shift, currentq=False, sort=False)  # masterq=False??
         eigs[i, :] = system.eigvals
     return eigs
 
 
-def plot_tuning(eigs, delta_epsilons):
+def plot_tuning(eigs, delta_epsilons, indices):
     """ Plots the tuning process of the eigenvalues when changing delta_eps.
 
     Parameters:
     eigs -- matrix of eigenvalues at different delta_epsilon from calc_tuning
     delta_epsilons -- vector of delta_epsilons
+    indices -- which eigvals to plot
     """
-    system_size = eigs.shape[1]
-    fig, (ax_real, ax_imag, ax_spec) = plt.subplots(1, 3, figsize=(10, 4))
-    for eig_index in range(system_size):
-        ax_real.plot(delta_epsilons, np.real(eigs[:, eig_index]))
-        ax_imag.plot(delta_epsilons, np.imag(eigs[:, eig_index]))
+    # system_size = eigs.shape[1]
+    fig, (ax_real, ax_imag) = plt.subplots(1, 2, figsize=(10, 4))
+    linestyles = ['solid', 'dashed']
+    linewidth = 4
+    for i, eig_index in enumerate(indices):
+        ax_real.plot(delta_epsilons, np.real(eigs[:, eig_index]),
+                     ls=linestyles[i], linewidth=linewidth)
+        ax_imag.plot(delta_epsilons, np.imag(eigs[:, eig_index]),
+                     ls=linestyles[i], linewidth=linewidth)
 
-        im_parts = [eigval.imag for eigval in eigs[:, eig_index]]
-        re_parts = [eigval.real for eigval in eigs[:, eig_index]]
+        # im_parts = [eigval.imag for eigval in eigs[:, eig_index]]
+        # re_parts = [eigval.real for eigval in eigs[:, eig_index]]
         # scatter plot where the size changes over the delta_epsilons
-        ax_spec.scatter(re_parts, im_parts,
-                        s=np.linspace(5, 12, len(delta_epsilons)))
+        # ax_spec.scatter(re_parts, im_parts,
+        #                 s=np.linspace(5, 12, len(delta_epsilons)))
     # ax_real.legend(np.arange(system_size))
     # ax_imag.legend(np.arange(system_size))
-    fs = 15
-    ax_real.set_xlabel(r'$\delta\epsilon$', fontsize=fs)
-    ax_imag.set_xlabel(r'$\delta\epsilon$', fontsize=fs)
-    ax_spec.set_xlabel(r'Re$\lambda$', fontsize=fs)
-    ax_real.set_ylabel(r'Re$\lambda$', fontsize=fs)
-    ax_imag.set_ylabel(r'Im$\lambda$', fontsize=fs)
-    ax_spec.set_ylabel(r'Im$\lambda$', fontsize=fs)
+    fs = 20
+    ax_real.set_xlabel(r'$\delta\epsilon/\Gamma$', fontsize=fs)
+    ax_imag.set_xlabel(r'$\delta\epsilon/\Gamma$', fontsize=fs)
+    # ax_spec.set_xlabel(r'Re$\lambda$', fontsize=fs)
+    ax_real.set_ylabel(r'Re$\lambda/\Gamma$', fontsize=fs)
+    ax_imag.set_ylabel(r'Im$\lambda/\Gamma$', fontsize=fs)
+    ax_imag.tick_params(axis='both', which='major', labelsize=13)
+    ax_imag.tick_params(axis='both', which='minor', labelsize=10)
+    ax_real.tick_params(axis='both', which='major', labelsize=13)
+    ax_real.tick_params(axis='both', which='minor', labelsize=10)
+    ax_real.legend([r'$\lambda_5$', r'$\lambda_6$'], fontsize=16)
+    # ax_spec.set_ylabel(r'Im$\lambda$', fontsize=fs)
     plt.tight_layout()
-    # plt.savefig('../tuning_Lind_300.png', dpi=400)
+    # plt.savefig('../text/figures/tuning.png', dpi=400)
     plt.show()
 
 
@@ -317,7 +327,8 @@ def print_trace_evo(system, t_vec, rho_0, method, ep=None):
     print(np.array_str(np.array(traces), precision=6, suppress_small=True))
 
 
-def plot_current(system, t_vec, rho_0, direction, axis, plot, method, ep=None):
+def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
+                 linestyle, ep=None):
     """Plots the current over time.
 
     Parameters:
@@ -328,6 +339,7 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method, ep=None):
     axis -- axes object for plot
     plot -- what to plot, 'divide', 'subtract_log' or 'normal'
     method -- method of calculation, 'ep', 'diag' or 'num'.
+    linestyle -- linestyle for plot
     ep -- ExceptionalPoint object, None for using dens_matrix_evo instead of
           dens_matrix_evo_ep
     """
@@ -340,16 +352,18 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method, ep=None):
         warnings.warn('Imaginary parts in current')
 
     if plot == 'divide':
-        axis.plot(t_vec, np.real(res_curr)/ss_curr.real)
+        axis.plot(t_vec, np.real(res_curr)/ss_curr.real, linestyle=linestyle,
+                  linewidth=4)
         axis.axhline(y=1, color='black', zorder=0, label='_nolegend_')
         axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
     elif plot == 'subtract_log':
         axis.set_yscale("log", base=10)
         axis.plot(t_vec,
-                  np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr))
+                  np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
+                  linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=20)
     elif plot == 'normal':
-        axis.plot(t_vec, np.real(res_curr))
+        axis.plot(t_vec, np.real(res_curr), linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$I(t)$', fontsize=20)
     else:
         raise Exception(plot + ' is not a valid "plot" entry')
@@ -357,7 +371,7 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method, ep=None):
 
 
 def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
-                             methods, eps, l_shift):
+                             methods, eps, l_shift, delta_eps_ep):
     """Plots current for systems for varying parameters.
 
     Parameters:
@@ -371,19 +385,18 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
     l_shift -- True to use lamb_shift
     """
     fig, ax = plt.subplots()
-    # diffs = d_epsilons - DELTA_EPS
+    diffs = delta_eps_ep - d_epsilons
     leg = []
     for i, (ep, d_epsilon, method) in enumerate(zip(eps, d_epsilons, methods)):
         parallel_dots.change_delta_eps(d_epsilon)
         parallel_dots.solve(lamb_shift=l_shift)
         plot_current(parallel_dots, t_vec, rho_0, direction, ax, 'divide',
                      method, ep)
-        # leg.append(f'$\Delta/\delta\epsilon_{{EP}}
-        #  = ${diffs[i]/DELTA_EPS: .2f}')
+        leg.append(f'$\Delta/\delta\epsilon_{{EP}} = ${diffs[i]/delta_eps_ep: .2f}')
     ax.tick_params(axis='both', which='major', labelsize=13)
     ax.tick_params(axis='both', which='minor', labelsize=10)
-    ax.legend(leg, fontsize=13)
-    # plt.savefig('../figures/current_close2ep.png', dpi=400,
+    ax.legend(leg, fontsize=14)
+    # plt.savefig('../text/figures/curr_diff_de.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -405,7 +418,8 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
 
     fig, axis = plt.subplots()
     leg = []
-    for rho_tuple, const_tuple in zip(rhos, consts):
+    linestyles = ['solid', 'dashed']
+    for i, (rho_tuple, const_tuple) in enumerate(zip(rhos, consts)):
         rho_0 = ep.R[:, 0].copy()
         for rho_ind, const in zip(rho_tuple, const_tuple):
             rho_0 += const*ep.R[:, rho_ind]
@@ -414,15 +428,15 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
         overlap = np.abs(np.vdot(ep.L[:, 2], rho_0))
         leg.append(f'Overlap = {np.real(overlap/tot_overlap):.2f}')
         plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log',
-                     method, ep)
+                     method, linestyles[i], ep)
 
-    # leg =
-    # [r"$\rho_0 = \rho_{ss} + \rho'$", r"$\rho_0 = \rho_{ss} + \bar{\rho}$"]
+    leg = [r"$\rho_0 = \rho_{ss} + \bar{\rho}$",
+           r"$\rho_0 = \rho_{ss} + \rho'$"]
     axis.legend(leg, fontsize=15)
     axis.tick_params(axis='both', which='major', labelsize=13)
     axis.tick_params(axis='both', which='minor', labelsize=10)
-    axis.set_xlabel('time')
-    # plt.savefig('../figures/current_diff_rho_0_log.png', dpi=400,
+    axis.set_xlabel('Time ' + r'$(t)$')
+    # plt.savefig('../text/figures/current_diff_rho_0.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -478,7 +492,7 @@ def plot_alpha_vs_dist(delta_eps, delta_epsilons, system, t_vec, alpha_len):
 
 def create_delta_eps(d_eps_ep):
     delta_epsilons = np.array([d_eps_ep])
-    offsets = [2e-1*d_eps_ep, 4e-1*d_eps_ep]
+    offsets = [3e-1*d_eps_ep]
     for offset in offsets:
         delta_epsilons = np.append(delta_epsilons, d_eps_ep + offset)
         delta_epsilons = np.append(delta_epsilons, d_eps_ep - offset)
@@ -488,7 +502,7 @@ def create_delta_eps(d_eps_ep):
 
 if __name__ == '__main__':
     GAMMA = 1
-    with open('../d_eps_ep_lamb_shift.txt', 'rb') as f:
+    with open('d_eps_ep_lamb_shift.txt', 'rb') as f:
         # using v_b = 350*GAMMA and delta_t = 1e-6
         DELTA_EPS = pickle.load(f) * GAMMA
     # for lindblad no lamb shift
@@ -502,10 +516,9 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
+    t_vec = np.linspace(0, 15, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
+    rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
     d_epsilons = create_delta_eps(DELTA_EPS)
-    rho_0 = ep.R[:, 0] - ep.R[:, 2]
-    fig, ax = plt.subplots()
-    plot_current(parallel_dots, np.linspace(0, 10), rho_0, 'left', ax, 'normal', 'ep', ep)
-    plot_current(parallel_dots, np.linspace(0, 10), rho_0, 'right', ax, 'normal', 'ep', ep)
-    plt.show()
+    plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
+                             ['num']*len(d_epsilons), [None]*len(d_epsilons), l_shift, DELTA_EPS)
