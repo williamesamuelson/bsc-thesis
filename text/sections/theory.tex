@@ -65,9 +65,9 @@ An important tool used in open quantum theory is the density operator $\hat{\rho
 Fixing a basis $\{\ket{\phi_i}\}$, the density operator can be represented by a matrix with elements $\rho_{ij} = \braket{\phi_i|\hat\rho|\phi_j}$. The diagonal elements $\rho_{ii}$ represents classical probabilities of being in a state $\ket{\phi_i}$ and the off-diagonal elements $\rho_{ij}$ are the coherences of the system~\cite{bookopen}.
 %The density operator is Hermitian, positive and has unit trace. 
 
-The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be given by equation~\eqref{exp}. From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system.
+The average measured value of an observable $\hat O$ of an ensemble represented by $\hat\rho$ can be shown to be given by equation~\eqref{eq:expec}. From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system.
 
-\begin{equation}\label{exp}
+\begin{equation}\label{eq:expec}
     \braket{\hat O} = \tr({\hat\rho \hat O}).
 \end{equation}
 
@@ -136,7 +136,7 @@ Using this new basis and creating the change-of-basis matrix $M$ by forming
 \end{equation}
 the Jordan normal form $J$ of the matrix $A$ is obtained:
 
-\begin{equation}
+\begin{equation}\label{eq:jordan}
 \begin{aligned}
     A &= MJM^{-1}, \\ \quad \text{where } J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
                                                          \vdots & \ddots & \vdots \\
@@ -154,8 +154,8 @@ The Jordan form hence consist of $q$ blocks on the diagonal, each block of size 
     \item Left eigenvectors in $M^{-1}$
 \end{enumerate}
 
-\subsubsection{Solution of ODEs for exceptional points}
-An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can be written as a matrix exponential in the following way:
+\subsubsection{Solution of ODEs}
+An ordinary differential equation (ODE) is a linear differential equation of the form $x'=Ax$. Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can then be written as a matrix exponential in the following way:
 
 \begin{equation}
     x(t) = e^{At}x(0), \;\text{where } \;e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
@@ -163,7 +163,7 @@ An ordinary differential equation (ODE) is a linear differential equation of the
 
 The matrix exponential can be simplified using Jordan decomposition. It can be shown that  $e^{At} = Me^{Jt}M^{-1}$ where 
 
-\begin{equation}
+\begin{equation}\label{eq:expjordan}
     \begin{aligned}
         e^{Jt} = &\begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
                                                          \vdots & \ddots & \vdots \\
@@ -190,7 +190,7 @@ This can further be decomposed if one considers the generalized modes of the sys
 \end{equation}
 and using equation~\eqref{jordanode}, the solution can be written as
 
-\begin{equation}\label{genmode}
+\begin{equation}\label{eq:genmode}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a,
 \end{equation}
 since $\boldsymbol{l}_j\boldsymbol{r}_i = \delta_{ij}I$, where $I$ is the $n_j\times n_i$ identity matrix. Hence, the solution stays in the space spanned by the initial condition throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes: 

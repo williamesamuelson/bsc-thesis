@@ -110,17 +110,29 @@ def plot_spectrum(eigvals):
     im_parts = [eigval.imag for eigval in eigvals]
     re_parts = [eigval.real for eigval in eigvals]
 
-    fig, ax = plt.subplots()
-    colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
-    ax.grid(True, which='both')
-    ax.set_axisbelow(True)
-    ax.axhline(y=0, color='k', zorder=1)
-    ax.axvline(x=0, color='k', zorder=1)
-    ax.scatter(re_parts, im_parts, c=colors, s=100, zorder=2)
-    f_size = 15
+    fig, ax = plt.subplots(figsize=(10,3))
+    colors = ['tab:blue', 'tab:blue', 'tab:orange', 'tab:blue', 'tab:blue',
+              'tab:orange']
+    shapes = ['o', 'o', 'x', 'o', 'o', 'x']
+    text = [r'$\lambda_1$', r'$\lambda_2$', r'$\lambda_3$', r'$\lambda_4$',
+               r'$\lambda_5$', r'$\lambda_6$']
+    f_size = 20
+    ax.axhline(y=0, color='k', zorder=1, label='_nolegend_')
+    ax.axvline(x=0, color='k', zorder=1, label='_nolegend_')
+    for i in range(len(eigvals)):
+        ax.scatter(re_parts[i], im_parts[i], s=200, zorder=2, marker=shapes[i],
+                   c=colors[i])
+        if i == 2 or i == 5:
+            ax.text(re_parts[i], im_parts[i] - 0.44, text[i], size=f_size)
+        else:
+            ax.text(re_parts[i] + 0.02, im_parts[i] + 0.2, text[i], size=f_size)
     ax.set_xlabel(r'Re$\lambda$', fontsize=f_size)
     ax.set_ylabel(r'Im$\lambda$', fontsize=f_size)
-    # plt.savefig('../spectrum.png', dpi=300)
+    ax.set_ylim([-1, 1])
+    ax.tick_params(axis='both', which='major', labelsize=13)
+    ax.tick_params(axis='both', which='minor', labelsize=10)
+    plt.tight_layout()
+    # plt.savefig('../text/figures/spectrum.png', dpi=400, bbox_inches='tight')
     plt.show()
 
 
@@ -499,6 +511,16 @@ def create_delta_eps(d_eps_ep):
 
     return delta_epsilons
 
+def help_plot_curr_epnonep(parallel_dots, DELTA_EPS):
+    t_vec = np.linspace(0, 15, 100)
+    ep = ExceptionalPoint(parallel_dots, 'full space')
+    #rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
+    rho_0 = np.array([1, 0, 0, 0, 0, 0])
+    #rho_0 /= sum(rho_0[:4])
+    d_epsilons = create_delta_eps(DELTA_EPS)
+    plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
+                             ['num']*len(d_epsilons), [None]*len(d_epsilons), True, DELTA_EPS)
+
 
 if __name__ == '__main__':
     GAMMA = 1
@@ -516,9 +538,4 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    t_vec = np.linspace(0, 15, 100)
-    ep = ExceptionalPoint(parallel_dots, 'full space')
-    rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
-    d_epsilons = create_delta_eps(DELTA_EPS)
-    plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
-                             ['num']*len(d_epsilons), [None]*len(d_epsilons), l_shift, DELTA_EPS)
+    plot_spectrum(parallel_dots.eigvals)
