@@ -110,27 +110,27 @@ def plot_spectrum(eigvals):
     im_parts = [eigval.imag for eigval in eigvals]
     re_parts = [eigval.real for eigval in eigvals]
 
-    fig, ax = plt.subplots(figsize=(10,3))
+    fig, ax = plt.subplots(figsize=(10, 3))
     colors = ['tab:blue', 'tab:blue', 'tab:orange', 'tab:blue', 'tab:blue',
               'tab:orange']
-    shapes = ['o', 'o', 'x', 'o', 'o', 'x']
-    text = [r'$\lambda_1$', r'$\lambda_2$', r'$\lambda_3$', r'$\lambda_4$',
-               r'$\lambda_5$', r'$\lambda_6$']
-    f_size = 20
+    shapes = ['o', 'o', 'X', 'o', 'o', 'X']
+    text = [r'$\lambda_1$', r'$\lambda_5$', r'$\lambda_6$', r'$\lambda_2$',
+               r'$\lambda_3$', r'$\lambda_4$']
+    f_size = 23
     ax.axhline(y=0, color='k', zorder=1, label='_nolegend_')
     ax.axvline(x=0, color='k', zorder=1, label='_nolegend_')
     for i in range(len(eigvals)):
-        ax.scatter(re_parts[i], im_parts[i], s=200, zorder=2, marker=shapes[i],
+        ax.scatter(re_parts[i], im_parts[i], s=250, zorder=2, marker=shapes[i],
                    c=colors[i])
         if i == 2 or i == 5:
             ax.text(re_parts[i], im_parts[i] - 0.44, text[i], size=f_size)
         else:
             ax.text(re_parts[i] + 0.02, im_parts[i] + 0.2, text[i], size=f_size)
-    ax.set_xlabel(r'Re$\lambda$', fontsize=f_size)
-    ax.set_ylabel(r'Im$\lambda$', fontsize=f_size)
+    ax.set_xlabel(r'Re$\lambda/\Gamma$', fontsize=f_size)
+    ax.set_ylabel(r'Im$\lambda/\Gamma$', fontsize=f_size)
     ax.set_ylim([-1, 1])
-    ax.tick_params(axis='both', which='major', labelsize=13)
-    ax.tick_params(axis='both', which='minor', labelsize=10)
+    ax.tick_params(axis='both', which='major', labelsize=15)
+    ax.tick_params(axis='both', which='minor', labelsize=13)
     plt.tight_layout()
     # plt.savefig('../text/figures/spectrum.png', dpi=400, bbox_inches='tight')
     plt.show()
@@ -267,7 +267,7 @@ def optimize_ep(system, init_guess, init_range, tolerance,
     return current_d_eps
 
 
-def calc_dens_evo(system, t_vec, rho_0, method, ep=None):
+def calc_dens_evo(system, t_vec, rho_0, method, ep=None, num_tvec=False):
     """Calculates the density matrix evolution.
 
     Parameters:
@@ -292,12 +292,16 @@ def calc_dens_evo(system, t_vec, rho_0, method, ep=None):
             L = system.kern
             return L@y
 
+        if num_tvec:
+            sol = solve_ivp(rhs, (0, t_vec[-1]), rho_0, atol=1e-10, rtol=1e-6)
+            return sol.t, sol.y.T
+
         res = solve_ivp(rhs, (0, t_vec[-1]), rho_0, t_eval=t_vec).y.T
 
     return res
 
 
-def plot_int_vs_diag(system, t_vec, rho_0, method, ep=None):
+def plot_int_vs_diag(ax, system, t_vec, rho_0, method, ls, ep=None):
     """Plots the norm-difference between using 'method' and integration.
 
     Parameters:
@@ -308,20 +312,26 @@ def plot_int_vs_diag(system, t_vec, rho_0, method, ep=None):
     ep -- ExceptionalPoint object
     """
     # Trace distance of the vectorized matrices?
+    t_vec, res_int = calc_dens_evo(system, t_vec, rho_0, 'num', num_tvec=True)
     res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep)
-    res_int = calc_dens_evo(system, t_vec, rho_0, 'num')
 
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
     norms_int = 1/2 * np.array(np.linalg.norm(res_int, axis=1))
-    fig, ax = plt.subplots(1, 1)
-    ax.plot(t_vec, norms/norms_int)
-    fs = 13
-    ax.set_xlabel(r'$t$', fontsize=fs)
-    ax.set_ylabel(r'$||\rho_{jord} - \rho_{int}||/||\rho_{int}||$',
-                  fontsize=fs)
-    # plt.savefig('../figures/intvsdiag_atep_rhoprime.png', dpi=400,
-    #             bbox_inches='tight')
-    plt.show()
+    ax.plot(t_vec, norms/norms_int, linestyle=ls, linewidth=4)
+    fs = 23
+    if method == 'ep':
+        ylabel = r'$\mathcal{D}(\rho_{EP}, \rho_{int})$'
+    else:
+        ylabel = r'$\mathcal{D}(\rho_{diag}, \rho_{int})$'
+
+    ylabel = r'$\mathcal{D}(\rho, \rho_{int})$'
+    ax.set_xlabel(r'Time $(t)$', fontsize=fs)
+    ax.set_ylabel(ylabel, fontsize=fs)
+    ax.tick_params(axis='both', which='major', labelsize=15)
+    ax.tick_params(axis='both', which='minor', labelsize=13)
+    t = ax.yaxis.get_offset_text()
+    t.set_size(15)
+
 
 
 def print_trace_evo(system, t_vec, rho_0, method, ep=None):
@@ -514,12 +524,27 @@ def create_delta_eps(d_eps_ep):
 def help_plot_curr_epnonep(parallel_dots, DELTA_EPS):
     t_vec = np.linspace(0, 15, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
-    #rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
+    # rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
     rho_0 = np.array([1, 0, 0, 0, 0, 0])
-    #rho_0 /= sum(rho_0[:4])
+    # rho_0 /= sum(rho_0[:4])
     d_epsilons = create_delta_eps(DELTA_EPS)
     plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
-                             ['num']*len(d_epsilons), [None]*len(d_epsilons), True, DELTA_EPS)
+                             ['num']*len(d_epsilons), [None]*len(d_epsilons),
+                             True, DELTA_EPS)
+def help_plot_mine_vs_num(parallel_dots):
+    ep = ExceptionalPoint(parallel_dots, 'full space')
+    t_vec = np.linspace(0, 10, 500)
+    # fig, (axd, axj) = plt.subplots(1, 2)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    rho_0 = np.array([0.2, 0.3, 0.4, 0.1, 0.1, -0.2], dtype='complex')
+    # rho_0 = ep.R[:, 0] + ep.R[:, 2]
+    plot_int_vs_diag(ax, parallel_dots, t_vec, rho_0, 'ep', 'solid', ep)
+    parallel_dots.change_delta_eps(GAMMA*0.1)
+    parallel_dots.solve(lamb_shift=l_shift)
+    plot_int_vs_diag(ax, parallel_dots, t_vec, rho_0, 'diag', 'dashed')
+    ax.legend(['EP', 'non-EP'], fontsize=23)
+    # plt.savefig('../text/figures/minevsint.png', dpi=400, bbox_inches='tight')
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -538,4 +563,3 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    plot_spectrum(parallel_dots.eigvals)

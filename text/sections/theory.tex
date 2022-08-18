@@ -193,11 +193,21 @@ and using equation~\eqref{jordanode}, the solution can be written as
 \begin{equation}\label{eq:genmode}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a,
 \end{equation}
-since $\boldsymbol{l}_j\boldsymbol{r}_i = \delta_{ij}I$, where $I$ is the $n_j\times n_i$ identity matrix. Hence, the solution stays in the space spanned by the initial condition throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes: 
-
+since $\boldsymbol{l}_j\boldsymbol{r}_i = \delta_{ij}I$, where $I$ is the $n_j\times n_i$ identity matrix. Hence, the solution stays in the space spanned by the initial condition throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the Jordan blocks: 
 \begin{equation}
     x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0).
 \end{equation}
+Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation in Fock-Liouville space    
+\begin{equation}
+    \diff{}{t}\ket{\rho(t)}\rangle = L \ket{\rho(t)}\rangle,
+\end{equation}
+where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using equation~\eqref{eq:genmode}, the solution can then be written as
+
+\begin{equation}\label{eq:genmodeFL}
+    \ket{\rho(t)}\rangle = \sum_{i=1}^q \begin{bmatrix} \ket{\rho_i}\rangle, & \ket{\rho_i'}\rangle, & \ket{\rho_i''}\rangle, & \dots \end{bmatrix} e^{J_{n_i}(\lambda_i)t} \begin{bmatrix} \langle\bra{\sigma_i} \\ \langle\bra{\sigma_i'}\\ \langle\bra{\sigma_i'' } \\ \vdots \end{bmatrix}\ket{\rho(0)}\rangle.
+\end{equation}
+Here, $\ket{\rho_i}\rangle, \ket{\rho_i'}\rangle, \ket{\rho_i''}\rangle, \dots$ are the generalized eigenvectors of $L$ and $\langle\bra{\sigma_i}, \langle\bra{\sigma_i'}, \langle\bra{\sigma_i'' }, \dots$ the corresponding rows in $M^{-1}$.
+
 
 \end{document}
 
