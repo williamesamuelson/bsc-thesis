@@ -383,13 +383,13 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
         axis.plot(t_vec,
                   np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
                   linestyle=linestyle, linewidth=4)
-        axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=20)
+        axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=22)
     elif plot == 'normal':
         axis.plot(t_vec, np.real(res_curr), linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$I(t)$', fontsize=20)
     else:
         raise Exception(plot + ' is not a valid "plot" entry')
-    axis.set_xlabel(r'Time $(t)$', fontsize=15)
+    axis.set_xlabel(r'Time $(t)$', fontsize=20)
 
 
 def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
@@ -416,9 +416,9 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
                      method, ep)
         leg.append(f'$\Delta/\delta\epsilon_{{EP}} = ${diffs[i]/delta_eps_ep: .2f}')
     ax.tick_params(axis='both', which='major', labelsize=13)
-    ax.tick_params(axis='both', which='minor', labelsize=10)
-    ax.legend(leg, fontsize=14)
-    # plt.savefig('../text/figures/curr_diff_de.png', dpi=400,
+    ax.tick_params(axis='both', which='minor', labelsize=11)
+    ax.legend(leg, fontsize=18)
+    # plt.savefig('../text/figures/curr_diff_dev2.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -440,7 +440,7 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
 
     fig, axis = plt.subplots()
     leg = []
-    linestyles = ['solid', 'dashed']
+    linestyles = ['solid', 'dashed', 'solid', 'dashdot']
     for i, (rho_tuple, const_tuple) in enumerate(zip(rhos, consts)):
         rho_0 = ep.R[:, 0].copy()
         for rho_ind, const in zip(rho_tuple, const_tuple):
@@ -452,13 +452,14 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
         plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log',
                      method, linestyles[i], ep)
 
-    leg = [r"$\rho_0 = \rho_{ss} + \bar{\rho}$",
-           r"$\rho_0 = \rho_{ss} + \rho'$"]
-    axis.legend(leg, fontsize=15)
+        leg = [r"$\rho_0: \rho_{ss},  \bar{\rho}$",
+                r"$\rho_0: \rho_{ss}, \rho'$", r"$\rho_0 :\rho_{ss}, \rho_3$", 
+                r"$\rho_0: \rho_{ss}, \bar{\rho}, \rho_3$"]
+    axis.legend(leg, fontsize=17)
     axis.tick_params(axis='both', which='major', labelsize=13)
-    axis.tick_params(axis='both', which='minor', labelsize=10)
-    axis.set_xlabel('Time ' + r'$(t)$')
-    # plt.savefig('../text/figures/current_diff_rho_0.png', dpi=400,
+    axis.tick_params(axis='both', which='minor', labelsize=11)
+    axis.set_xlabel('Time ' + r'$(t)$', fontsize=20)
+    # plt.savefig('../text/figures/current_diff_rho_0v2.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -514,7 +515,7 @@ def plot_alpha_vs_dist(delta_eps, delta_epsilons, system, t_vec, alpha_len):
 
 def create_delta_eps(d_eps_ep):
     delta_epsilons = np.array([d_eps_ep])
-    offsets = [3e-1*d_eps_ep]
+    offsets = [4e-1*d_eps_ep]
     for offset in offsets:
         delta_epsilons = np.append(delta_epsilons, d_eps_ep + offset)
         delta_epsilons = np.append(delta_epsilons, d_eps_ep - offset)
@@ -525,12 +526,15 @@ def help_plot_curr_epnonep(parallel_dots, DELTA_EPS):
     t_vec = np.linspace(0, 15, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
     # rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
-    rho_0 = np.array([1, 0, 0, 0, 0, 0])
+    rho_0 = np.array([1, 0, 0, 0, 0, 0], dtype='complex')
     # rho_0 /= sum(rho_0[:4])
     d_epsilons = create_delta_eps(DELTA_EPS)
     plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
                              ['num']*len(d_epsilons), [None]*len(d_epsilons),
                              True, DELTA_EPS)
+    plt.show()
+
+
 def help_plot_mine_vs_num(parallel_dots):
     ep = ExceptionalPoint(parallel_dots, 'full space')
     t_vec = np.linspace(0, 10, 500)
@@ -545,6 +549,14 @@ def help_plot_mine_vs_num(parallel_dots):
     ax.legend(['EP', 'non-EP'], fontsize=23)
     # plt.savefig('../text/figures/minevsint.png', dpi=400, bbox_inches='tight')
     plt.show()
+
+
+def help_plot_curr_diffrho0(parallel_dots):
+    ep = ExceptionalPoint(parallel_dots, 'inverse')
+    t_vec = np.linspace(0, 15)
+    rhos = [(1,), (2,), (3,), (1, 3)]
+    consts = [(1,), (1,), (1,), (0.1, -150)]
+    plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep)
 
 
 if __name__ == '__main__':
@@ -563,3 +575,5 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
+    help_plot_curr_diffrho0(parallel_dots)
+
