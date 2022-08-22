@@ -1,5 +1,7 @@
-\documentclass{article}
+\documentclass[12pt, twoside]{report}
+\usepackage[a4paper,headheight=15pt,width=150mm,top=25mm,bottom=25mm,bindingoffset=6mm]{geometry}
 \usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
 \usepackage{lipsum}
 \usepackage{subfiles}
 \usepackage{graphicx}
@@ -8,32 +10,50 @@
 \usepackage{braket}
 \usepackage{esdiff}
 \usepackage{subdepth}
+\usepackage{subcaption}
+\usepackage{hyperref}
 \usepackage[backend=biber, sorting=none, style=phys]{biblatex}
+\usepackage[capitalize]{cleveref}
 
+\pagestyle{fancy}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue}
 \DeclareMathOperator{\tr}{Tr}
 \addbibresource{ref.bib}
 \graphicspath{figures/}
 
 
 \begin{document}
-%\subfile{sections/title}
-\title{Dynamics at an exceptional point in an interacting quantum dot system}
-\author{William Samuelson}
-\date{\today}
+%\title{Dynamics at an exceptional point in an interacting quantum dot system}
+% \author{William Samuelson}
+% \date{\today}
 %\affiliation{Lund University}
-\maketitle
+% \maketitle
+\subfile{sections/title}
 \newpage
-\tableofcontents
+\pagenumbering{roman}
+\subfile{sections/abstract}
 \newpage
-\section{Introduction}
+{
+    \hypersetup{linkcolor=black}
+    \tableofcontents
+}
+\newpage
+\pagenumbering{arabic}
+\chapter{Introduction}
 \subfile{sections/intro}
-\section{Theory}
+\chapter{Theory}
 \subfile{sections/theory}
-\section{Results}
+\chapter{System}
+\subfile{sections/system}
+\chapter{Results}
 \subfile{sections/results}
-\section{Discussion}
+\chapter{Discussion}
 \subfile{sections/discussion}
 
 \newpage
 \printbibliography
+\appendix
 \end{document}
