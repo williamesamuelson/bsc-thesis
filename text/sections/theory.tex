@@ -72,11 +72,11 @@ The right hand side of the Lindblad equation can be divided into two parts. The 
 %One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
 \section{Exceptional points}\label{sec:ep}
-A matrix which describes the evolution of a physical system, such as a Hamiltonian or a Liouvillian matrix, generally depends on some of the parameters describing the system. These parameters span the so called parameter space, and it is in this space the exceptional points lie. An exceptional point is defined as a point in the parameter space which causes two or more eigenvalues and their eigenvectors to simultaneously coalesce~\cite{nonHermrev}. An EP is said to be of a certain order, reflecting how many eigenvectors coalesce at the point. The notion of exceptional points and its orders is directly related to a type of matrix decomposition, the Jordan normal form.
+A matrix which describes the evolution of a physical system, such as a Hamiltonian or a Liouvillian matrix, generally depends on the parameters of the system. These parameters span the so called parameter space, and it is in this space the exceptional points lie. An exceptional point is defined as a point in the parameter space which causes two or more eigenvalues and their eigenvectors to simultaneously coalesce~\cite{nonHermrev}. An EP is said to be of a certain order, reflecting how many eigenvectors coalesce at the point. The notion of exceptional points and its orders are directly related to a type of matrix decomposition, the Jordan normal form.
 
 \subsection{Jordan normal form}
 
-In physics, a common way to simplify calculations is to diagonalize the matrix describing the system. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue $\lambda_i$. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
+In physics, a common way to simplify calculations is to diagonalize the matrix generating the evolution of the system. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue $\lambda_i$. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
 \end{equation}
@@ -84,7 +84,7 @@ where $S = (r_1, \dots ,r_n)$ consists of the eigenvectors of $A$, obeying $Ar_i
 
 However, not all matrices can be diagonalized, the exceptions being called defective matrices. For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible~\cite{uffe}. This is closely related to the notion of exceptional points, since when two eigenvectors coalesce, one dimension is lost and the eigenvectors do not form a basis anymore. A matrix at an EP is therefore always defective.
 
-Fortunately, there is a notion of an "almost diagonal" form for defective matrices, called the Jordan normal form. Recall that in the diagonalizable case, the basis is changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using Jordan chains, also known as generalized eigenvectors, which for each eigenvector $r_i$ with eigenvalue $\lambda_i$, consists of vectors $r_i, r_i^{(2)}, \dots,   r_i^{(n_i)}$ defined by
+Fortunately, there is a notion of an "almost diagonal" form for defective matrices, called the Jordan normal form. Recall that in the diagonalizable case, the basis is changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using Jordan chains~\cite{uffe}, which for each eigenvector $r_i$ with eigenvalue $\lambda_i$, consist of vectors $r_i, r_i^{(2)}, \dots,   r_i^{(n_i)}$ defined by
 \begin{equation}\label{jordanchain}
 \begin{aligned}
     (A-\lambda_iI)r_i &= 0 \\
@@ -94,89 +94,86 @@ Fortunately, there is a notion of an "almost diagonal" form for defective matric
     (A-\lambda_iI)r_i^{(n_i)} &= r_i^{(n_i-1)}.
 \end{aligned}
 \end{equation}
-The length of the chain, $n_i$, is the same as the order of the corresponding EP. Note that for eigenvectors outside of the EP, i.e the eigenvectors which have not coalesced, the Jordan chain is of length one, only consisting of the eigenvectors themselves. Doing this for all eigenvectors results in $q$ Jordan chains, each of which are collected into the matrices
+where $I$ is the identity matrix. These vectors are also known as generalized eigenvectors. The length of the $i$th chain, $n_i$, depends the number of coalescing eigenvectors, and is therefore the same as the order of the corresponding EP. Note that for eigenvectors not involved in an EP, i.e., for eigenvectors which have not coalesced, the Jordan chain is of length one, only consisting of the eigenvectors themselves. Creating these chains for each linearly independent eigenvector results in $q$ Jordan chains, each of which are collected into the matrices
 \begin{equation}
-    \boldsymbol{r}_i = (r_i, r_i^{(2)},\dots r_i^{(n_i)})
+    \{\boldsymbol{r}_i\}_{i=1}^q, \text{ where }\boldsymbol{r}_i = (r_i, r_i^{(2)},\dots ,r_i^{(n_i)}).
 \end{equation}
-The collection of generalized eigenvectors from all Jordan chains is called the canonical basis of the transformation. Using this new basis, the transformation matrix $M$, can be formed:
+Here, the bold font indicates a collection of column vectors next to each other, forming a matrix. The collection of generalized eigenvectors from all Jordan chains is called the canonical basis of the transformation. Using this new basis, the matrix $A$ can be transformed into its Jordan form $J$ with the transformation matrix 
 \begin{equation}\label{chofba}
-    M = (\boldsymbol{r}_1 \dots \boldsymbol{r}_q), \quad \text{where } 
+    M = (\boldsymbol{r}_1, \dots, \boldsymbol{r}_q),
 \end{equation}
-the Jordan normal form $J$ of the matrix $A$ is obtained:
-
+which also is known as the modal matrix. The Jordan normal form of $A$ is then obtained by forming $J = M^{-1}AM$ and has the following structure: 
 \begin{equation}\label{eq:jordan}
-\begin{aligned}
-    A &= MJM^{-1}, \\ \quad \text{where } J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
-                                                         \vdots & \ddots & \vdots \\
-                                                         0 & \dots &  J_{n_q}(\lambda_q)\end{bmatrix} \quad
-      &\text{and } J_{n_i}(\lambda_i) = \begin{bmatrix} \lambda_i & 1 & \dots & 0 \\
-                                                                                        \vdots  & \ddots & \ddots & \vdots \\
-                                                                                        \vdots & & \ddots& 1 \\
-                                                                                        0 & \dots & \dots & \lambda_i\end{bmatrix}.
-\end{aligned}
+    J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
+                            \vdots & \ddots & \vdots \\
+                        0 & \dots &  J_{n_q}(\lambda_q)\end{bmatrix}, \text{ where }
+       J_{n_i}(\lambda_i) = \begin{bmatrix} \lambda_i & 1 & \dots & 0 \\
+                                                    \vdots  & \ddots & \ddots & \vdots \\
+                                                    \vdots & & \ddots& 1 \\
+                                                    0 & \dots & \dots & \lambda_i\end{bmatrix}.
 \end{equation}
-The Jordan form hence consist of $q$ blocks on the diagonal, each block of size $n_i$ consisting of its eigenvalue on the diagonal and ones on the super diagonal~\cite{uffe}. Note that if all blocks are of size one, i.e there are no exceptional points, the Jordan form is diagonal.
-\begin{enumerate}
-    \item Perhaps mention the problems of calculating the Jordan form numerically?
-    \item Explain how it can be done.
-    \item Left eigenvectors in $M^{-1}$
-\end{enumerate}
+The Jordan form hence consists of $q$ Jordan blocks $J_{n_i}(\lambda_i)$ on the diagonal, where each block is of size $n_i$ and consists of its eigenvalue on the diagonal and ones on the super diagonal~\cite{uffe}. Note that if all blocks are of size one, i.e., there are no exceptional points, the Jordan form is diagonal. The Jordan normal form can therefore be thought of a generalization of the diagonal form $D$.
 
-\subsection{Solution of ODEs}
+A simple example of the construction of a Jordan normal form is helpful to understand the process.
+
+Unfortunately, the Jordan form of a matrix is notoriously difficult to calculate numerically. This stems from the fact that an arbitrary small perturbation away from an EP completely changes the Jordan form. The process is therefore inherently numerically unstable. For simple cases, it is however possible to work around this difficulty. By introducing a small tolerance to determine if eigenvalues and their eigenvectors have coalesced, one can then infer the block structure of the Jordan form and construct it manually.
+
+To be able to use the Jordan form in calculations, a substitution $A\rightarrow MJM^{-1}$ has to be made, and hence, the matrices $M$ and $M^{-1}$ are also desirable to compute. The matrix $M$ consists of the generalized eigenvectors, which can be calculated by the following process. Firstly, the regular eigenvectors are calculated by some numerical method, e.g., the \verb+numpy.linalg.eig+ function in Python. If there are coalesced eigenvectors, the corresponding Jordan chains need then to be computed. This can be done by solving the defining equations for the generalized eigenvectors given by \cref{jordanchain}. However, since $A-\lambda_iI$ is not of full rank, the equations are underdetermined, meaning that there does not exist a unique solution. A standard way of solving this problem is by using the Moore-Penrose pseudoinverse, which finds one of the solutions to the equation~\cite{uffe}. This process is then repeated until the full Jordan chains for each set of coalescing eigenvectors are calculated, obtaining all of the generalized eigenvectors and hence, the modal matrix $M$. 
+
+A straightforward way of calculating the inverse modal matrix $M^{-1}$, is just to numerically invert $M$. However in the literature regarding Liouvillian exceptional points, the rows in $M^{-1}$ is often referred to as the \textit{left} generalized eigenvectors. Explain what they are. These can be constructed biorthonormally to the regular generalized eigenvectors, effectively creating $M^{-1}$. The left generalized eigenvectors can be numerically calculated by a similar method as the right ones. However, these then have to be modified such that they are orthogonal to the right generalized eigenvectors, which can be done using LU-decomposition. We now turn our attention to a useful application of the Jordan normal form, ODEs.
+
+\subsection{General solution of ODEs}
 An ordinary differential equation (ODE) is a linear differential equation of the form
-\begin{equation}
+\begin{equation}\label{eq:ode}
     \diff{x}{t}=Ax. 
 \end{equation}
 Often, the unknown $x$ is a vector, and $A$ a matrix. The solution can then be written as a matrix exponential in the following way:
 \begin{equation}
     x(t) = e^{At}x(0), \;\text{where } \;e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
 \end{equation}
-The matrix exponential can be simplified using Jordan decomposition. It can be shown that  $e^{At} = Me^{Jt}M^{-1}$ where 
-
+The matrix exponential can be simplified using Jordan decomposition. It can be shown that  $e^{At} = Me^{Jt}M^{-1}$ where $M$ is the modal matrix and
 \begin{equation}\label{eq:expjordan}
-    \begin{aligned}
-        e^{Jt} = &\begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
+        e^{Jt} = \begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
                                                          \vdots & \ddots & \vdots \\
-                                                         0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix} \text{, and } \\
-            e^{J_{n_i}(\lambda_i)t} = e^{\lambda_it} &\begin{bmatrix} 1 & t & \dots & t^{n_i-1}/(n_i-1)! \\
+                                                         0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix}, \text{ where } 
+            e^{J_{n_i}(\lambda_i)t} = e^{\lambda_it} \begin{bmatrix} 1 & t & \dots & \frac{t^{n_i-1}}{(n_i-1)!}\\
                                                                 \vdots  & \ddots & \ddots & \vdots \\
                                                                 \vdots & & \ddots& t \\
                                                             0 & \dots & \dots & 1\ \end{bmatrix}.
-    \end{aligned}
 \end{equation}
+The matrix exponential therefore consists of entries with terms of the form $t^ke^{\lambda_it}$~\cite{uffe}. Note that if $A$ is diagonalizable, all blocks are of size one and the entries consist of pure exponentials on the diagonal. 
 
-In general, the matrix exponential therefore consists of entries with terms of the form $t^ke^{\lambda_it}$~\cite{uffe}. Note that if $A$ is diagonalizable, all blocks are of size one and the entries consist of pure exponentials on the diagonal. 
-
-Using this result, the solution can be written as 
-
+Using this result, the solution to \cref{eq:ode} can be written as 
 \begin{equation}\label{jordanode}
     x(t) = Me^{Jt}M^{-1}x(0).
 \end{equation}
+This can further be decomposed if one considers the generalized modes of the system. A generalized mode in this context is meant as the solution to the ODE, with an initial condition in a linear combination of vectors in \textit{one} of the Jordan chains. It can be shown that the trajectory then never leaves that Jordan chain throughout the whole evolution.
 
-This can further be decomposed if one considers the generalized modes of the system. Suppose first that the initial state is in a linear combination of vectors in one of the Jordan chains, $x(0) = a_1r_i + a_2r_i' + a_3r_i'' + \dots = \boldsymbol{r}_ia$, where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. By rewriting $M^{-1}$ as
-
+To show this, suppose first that the initial state is in such an initial state, i.e., a linear combination of vectors in one of the Jordan chains:
 \begin{equation}
-    M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix}
+    x(0) = a_1r_i + a_2r_i^{(2)} + \dots + a_{n_i}r_i^{(n_i)} = \boldsymbol{r}_ia,
 \end{equation}
-and using \cref{jordanode}, the solution can be written as
-
+where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Then we rewrite $M^{-1}$ as
+\begin{equation}
+    M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix},\end{equation}
+    where $\boldsymbol{l}_i$ contain $n_i$ row vectors. Since $M^{-1}M=I$, it follows that $\boldsymbol{l}_j \boldsymbol{r}_i = \delta_{ij}I$ where $I$ is the $n_j\times n_i$ identity matrix. Inserting this into \cref{jordanode}, the solution can be written as
 \begin{equation}\label{eq:genmode}
-    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{n_i} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a,
+    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
 \end{equation}
-since $\boldsymbol{l}_j\boldsymbol{r}_i = \delta_{ij}I$, where $I$ is the $n_j\times n_i$ identity matrix. Hence, the solution stays in the space spanned by the initial condition throughout the evolution. For an arbitrary initial condition, the solution can be written as a sum over the Jordan blocks: 
+Hence, the solution stays in the space spanned by the initial condition throughout the evolution, as earlier proposed. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes: 
 \begin{equation}
     x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0).
 \end{equation}
-Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation in Fock-Liouville space    
+Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation, transformed to Fock-Liouville space    
 \begin{equation}
-    \diff{}{t}\ket{\rho(t)}\rangle = L \ket{\rho(t)}\rangle,
+    \diff{\rho(t)}{t}= \mathcal{L} \rho(t) \rightarrow \diff{}{t}\ket{\rho(t)}\rangle = L \ket{\rho(t)}\rangle,
 \end{equation}
-where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written as
+where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written in terms of the eigenvalues and generalized eigenvectors of $L$.
 
-\begin{equation}\label{eq:genmodeFL}
-    \ket{\rho(t)}\rangle = \sum_{i=1}^q \begin{bmatrix} \ket{\rho_i}\rangle, & \ket{\rho_i'}\rangle, & \ket{\rho_i''}\rangle, & \dots \end{bmatrix} e^{J_{n_i}(\lambda_i)t} \begin{bmatrix} \langle\bra{\sigma_i} \\ \langle\bra{\sigma_i'}\\ \langle\bra{\sigma_i'' } \\ \vdots \end{bmatrix}\ket{\rho(0)}\rangle.
-\end{equation}
-Here, $\ket{\rho_i}\rangle, \ket{\rho_i'}\rangle, \ket{\rho_i''}\rangle, \dots$ are the generalized eigenvectors of $L$ and $\langle\bra{\sigma_i}, \langle\bra{\sigma_i'}, \langle\bra{\sigma_i'' }, \dots$ the corresponding rows in $M^{-1}$.
+% \begin{equation}\label{eq:genmodeFL}
+%     \ket{\rho(t)}\rangle = \sum_{i=1}^q \begin{bmatrix} \ket{\rho_i}\rangle, & \ket{\rho_i'}\rangle, & \ket{\rho_i''}\rangle, & \dots \end{bmatrix} e^{J_{n_i}(\lambda_i)t} \begin{bmatrix} \langle\bra{\sigma_i} \\ \langle\bra{\sigma_i'}\\ \langle\bra{\sigma_i'' } \\ \vdots \end{bmatrix}\ket{\rho(0)}\rangle.
+% \end{equation}
+% Here, $\ket{\rho_i}\rangle, \ket{\rho_i'}\rangle, \ket{\rho_i''}\rangle, \dots$ are the generalized eigenvectors of $L$ and $\langle\bra{\sigma_i}, \langle\bra{\sigma_i'}, \langle\bra{\sigma_i'' }, \dots$ the corresponding rows in $M^{-1}$.
 
 
 \end{document}
