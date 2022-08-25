@@ -6,7 +6,7 @@ The first step towards finding an exceptional point and simulating the dynamics 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{figures/tuning.png}
-    \caption{The real and imaginary part of $\lambda_5$ and $\lambda_6$ for varying $\delta\epsilon$. An eigenvalue degeneracy at can be seen at $\delta\epsilon\approx0.3\Gamma$.}
+    \caption{The real and imaginary part of two eigenvalues to $L$, $\lambda_5$ and $\lambda_6$, for varying $\delta\epsilon$. An eigenvalue degeneracy at can be seen at $\delta\epsilon\approx0.3\Gamma$.}
     \label{fig:tuning}
 \end{figure}
 
@@ -15,15 +15,15 @@ The full spectrum of the Liouvillian at the exceptional point is given in \cref{
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/spectrum.png}
-    \caption{The spectrum of the Liouvillian at the exceptional point.}
+    \caption{The spectrum of the Liouvillian at the exceptional point. The crosses are used to distinguish eigenvalues which are close to each other.}
     \label{fig:spec}
 \end{figure}
 
 Using \cref{eq:genmode}, the evolution of the system can be given in terms of the eigenvalues and generalized eigenvectors of $L$. Outside of an exceptional point, the Liouvillian is diagonalizable, and the terms are purely exponential. The evolution of the density operator is then given by
 \begin{equation}\label{eq:dynnonep}
-    \ket{\rho(t)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^6 e^{\lambda_i t} \langle\braket{\sigma_i|\rho(0)}\rangle \ket{\rho_i}\rangle
+    \ket{\rho(t)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^6 c_i e^{\lambda_i t} \ket{\rho_i}\rangle
 \end{equation}
-where $\ket{\rho_{ss}}\rangle = \langle\braket{\sigma_1|\rho(0)}\rangle \ket{\rho_1}\rangle$ is the steady state of the system, due to the zero eigenvalue $\lambda_1=0$.
+where $c_i = \langle\braket{\sigma_i|\rho(0)}\rangle$. Here, $\langle\bra{\sigma_i}$ is the row vector in $M^{-1}$ such that $\langle\braket{\sigma_i|\rho_j}\rangle=\delta_{ij}$, which as previously discussed, can be constructed as a left eigenvector to $L$. Furthermore, $\ket{\rho_{ss}}\rangle = c_1 \ket{\rho_1}\rangle$ is the steady state of the system, due to the zero eigenvalue $\lambda_1=0$.
 
 At the exceptional point, the Jordan form of $L$ and its exponential $e^{Jt}$ have to be evaluated. Since the EP is of order two, this results in a $2\times2$ Jordan block. This is the only EP, which means that rest of the Jordan form is diagonal. Using \cref{eq:jordan,eq:expjordan}, this results in the following Jordan form and Jordan exponential:
 
@@ -43,15 +43,16 @@ At the exceptional point, the Jordan form of $L$ and its exponential $e^{Jt}$ ha
 \end{equation}
 since $\lambda_1 = 0$.
 
-Furthermore, the Jordan chain vector $\ket{\rho'}\rangle$ defined by $(L - \bar\lambda I)\ket{\rho'}\rangle = \ket{\bar\rho}\rangle$ and its corresponding row in $M^{-1}$, $\langle\bra{\sigma'}$, need to be evaluated. Inserting these vectors into \cref{eq:genmode}, the evolution of the density operator can be shown to be given by
+Furthermore, the Jordan chain vector, here written as $\ket{\rho'}\rangle$, which is defined by $(L - \bar\lambda I)\ket{\rho'}\rangle = \ket{\bar\rho}\rangle$ and its corresponding row in $M^{-1}$, $\langle\bra{\sigma'}$, need to be evaluated. Inserting these vectors into \cref{eq:genmode}, the evolution of the density operator can be shown to be given by
 \begin{equation}\label{eq:dynep}
     \begin{aligned}
-        \ket{\rho(t)}\rangle = &\ket{\rho_{ss}}\rangle + \sum_{i=2}^4 e^{\lambda_i t} \langle\braket{\sigma_i|\rho(0)}\rangle \ket{\rho_i}\rangle \\ 
-                               & + e^{\bar \lambda t}\left\{\langle\braket{\bar\sigma|\rho(0)}\rangle + t\langle\braket{\sigma'|\rho(0)}\rangle \right\}\ket{\bar \rho}\rangle \\ 
-                               & + e^{\bar\lambda t} \langle\braket{\sigma'|\rho(0)}\rangle\ket{\rho'}\rangle.
+        \ket{\rho(t)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^4 c_i e^{\lambda_i t} \ket{\rho_i}\rangle  
+                                + (\bar c + c't)e^{\bar \lambda t}\ket{\bar \rho}\rangle + c'e^{\bar\lambda t}\ket{\rho'}\rangle,
     \end{aligned}
 \end{equation}
-By numerically calculating the generalized eigenvectors and the corresponding rows in $M^{-1}$, the dynamics at non-EP and at EP given by \cref{eq:dynnonep,eq:dynep}, could be implemented. The results were then compared with a numerical ODE-solver, see \cref{fig:minevsint}.
+where $\bar c = \langle\braket{\bar\sigma|\rho(0)}\rangle$, and $c' = \langle\braket{\sigma'|\rho(0)}\rangle$.
+
+By numerically calculating the generalized eigenvectors and the corresponding rows in $M^{-1}$ as described in section~\ref{sec:lind}, the dynamics at non-EP and at EP given by \cref{eq:dynnonep,eq:dynep}, could be implemented. The results were then compared with a numerical ODE-solver, see \cref{fig:minevsint}.
 
 \begin{figure}[H]
     \centering
@@ -59,7 +60,6 @@ By numerically calculating the generalized eigenvectors and the corresponding ro
     \caption{The relative distance $\mathcal{D}(\ket{\rho}\rangle, \ket{\rho_\text{int}}\rangle) = \frac{||\ket{\rho}\rangle - \ket{\rho_\text{int}}\rangle||_1}{||\ket{\rho_\text{int}}\rangle||_1}$ between the density matrices calculated with the implemented methods and with a numerical solver. The two lines represent the distances at the EP and away from the EP, using the corresponding implemented methods for each case. The numerical solver was set to an absolute and relative tolerance of $10^{-10}$ and $10^{-6}$ respectively.}
     \label{fig:minevsint}
 \end{figure}
-
 
 With a clear picture of the analytical dynamics and numerically calculated eigenvalues and generalized eigenvectors at hand, simulations of the current in the parallel dot system could be done. As discussed in the theory section, any relevant observable of the system can be obtained from the density operator. For the parallel dot system, the main observable is the current $\hat I$, which is described in terms of the jump operator. Using \cref{eq:expec}, the current can be calculated with $\braket{\hat I(t)} = \tr{(\hat \rho(t)\hat I)}$. Implementing this numerically, the current through the quantum dot system for varying parameters and initial conditions could be simulated. The first simulation involved sitting at an EP and choosing initial conditions in terms of the generalized eigenvectors, see \cref{fig:diffrho0}. In \cref{fig:diffde}, the dynamics of the current at and slightly away from the exceptional point was simulated.
 \begin{figure}[H]
@@ -77,7 +77,5 @@ With a clear picture of the analytical dynamics and numerically calculated eigen
     \label{fig:diffde}
     \end{minipage}\hfill
 \end{figure}
-
-
 
 \end{document}

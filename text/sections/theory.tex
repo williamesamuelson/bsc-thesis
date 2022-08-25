@@ -102,7 +102,9 @@ Here, the bold font indicates a collection of column vectors next to each other,
 \begin{equation}\label{chofba}
     M = (\boldsymbol{r}_1, \dots, \boldsymbol{r}_q),
 \end{equation}
-which also is known as the modal matrix. The Jordan normal form of $A$ is then obtained by forming $J = M^{-1}AM$ and has the following structure: 
+which also is known as the modal matrix. There is also a notion of \textit{left} generalized eigenvectors. A regular left eigenvector $l_i$ to $A$ is a row vector, defined by $l_iA = \lambda_iA$. These can then be extended to left generalized eigenvectors in a similar way as the right ones, given by \cref{jordanchain}, into Jordan chains. These left generalized eigenvectors can be constructed biorthogonally to the right ones, such that 
+
+The Jordan normal form of $A$ is then obtained by forming $J = M^{-1}AM$ and has the following structure: 
 \begin{equation}\label{eq:jordan}
     J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
                             \vdots & \ddots & \vdots \\
@@ -149,37 +151,30 @@ Using this result, the solution to \cref{eq:ode} can be written as
 \end{equation}
 This can further be decomposed if one considers the generalized modes of the system. A generalized mode in this context is meant as the solution to the ODE, with an initial condition in a linear combination of vectors in \textit{one} of the Jordan chains. It can be shown that the trajectory then never leaves that Jordan chain throughout the whole evolution.
 
-To show this, suppose first that the initial state is in such an initial state, i.e., a linear combination of vectors in one of the Jordan chains:
+To show this, suppose first that the initial state is in such an initial state, i.e., in a linear combination of vectors in one of the Jordan chains:
 \begin{equation}
     x(0) = a_1r_i + a_2r_i^{(2)} + \dots + a_{n_i}r_i^{(n_i)} = \boldsymbol{r}_ia,
 \end{equation}
 where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Then we rewrite $M^{-1}$ as
 \begin{equation}
     M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix},\end{equation}
-    where $\boldsymbol{l}_i$ contain $n_i$ row vectors. Since $M^{-1}M=I$, it follows that $\boldsymbol{l}_j \boldsymbol{r}_i = \delta_{ij}I$ where $I$ is the $n_j\times n_i$ identity matrix. Inserting this into \cref{jordanode}, the solution can be written as
-\begin{equation}\label{eq:genmode}
+    where each $\boldsymbol{l}_i$ contain $n_i$ row vectors. Since $M^{-1}M=I$, it follows that $\boldsymbol{l}_j \boldsymbol{r}_i = \delta_{ij}I$ where $I$ is the $n_j\times n_i$ identity matrix. Inserting this into \cref{jordanode}, the solution can be written as
+\begin{equation}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
 \end{equation}
-Hence, the solution stays in the space spanned by the initial condition throughout the evolution, as earlier proposed. For an arbitrary initial condition, the solution can be written as a sum over the generalized modes: 
-\begin{equation}
+Hence, the solution stays in the space spanned by the initial condition throughout the evolution, as earlier proposed. For an arbitrary initial condition, the solution can be written as a sum over these generalized modes: 
+\begin{equation}\label{eq:genmode}
     x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0).
 \end{equation}
+
 Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation, transformed to Fock-Liouville space    
 \begin{equation}
     \diff{\rho(t)}{t}= \mathcal{L} \rho(t) \rightarrow \diff{}{t}\ket{\rho(t)}\rangle = L \ket{\rho(t)}\rangle,
 \end{equation}
-where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written in terms of the eigenvalues and generalized eigenvectors of $L$. \Cref{eq:genmode} is very general since it can be used for any orders of the EP, including when the system is not at an exceptional point.
-
+where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written in terms of the eigenvalues and generalized eigenvectors of $L$.
 % \begin{equation}\label{eq:genmodeFL}
 %     \ket{\rho(t)}\rangle = \sum_{i=1}^q \begin{bmatrix} \ket{\rho_i}\rangle, & \ket{\rho_i'}\rangle, & \ket{\rho_i''}\rangle, & \dots \end{bmatrix} e^{J_{n_i}(\lambda_i)t} \begin{bmatrix} \langle\bra{\sigma_i} \\ \langle\bra{\sigma_i'}\\ \langle\bra{\sigma_i'' } \\ \vdots \end{bmatrix}\ket{\rho(0)}\rangle.
 % \end{equation}
 % Here, $\ket{\rho_i}\rangle, \ket{\rho_i'}\rangle, \ket{\rho_i''}\rangle, \dots$ are the generalized eigenvectors of $L$ and $\langle\bra{\sigma_i}, \langle\bra{\sigma_i'}, \langle\bra{\sigma_i'' }, \dots$ the corresponding rows in $M^{-1}$.
 
-
 \end{document}
-
-
-
-
-
-
