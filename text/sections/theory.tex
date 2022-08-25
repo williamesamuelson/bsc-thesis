@@ -91,7 +91,7 @@ Fortunately, there is a notion of an "almost diagonal" form for defective matric
     (A-\lambda_iI)r_i^{(2)} &= r_i \\
     (A-\lambda_iI)r_i^{(3)} &= r_i^{(2)} \\
     &\;\;\vdots \\
-    (A-\lambda_iI)r_i^{(n_i)} &= r_i^{(n_i-1)}.
+    (A-\lambda_iI)r_i^{(n_i)} &= r_i^{(n_i-1)},
 \end{aligned}
 \end{equation}
 where $I$ is the identity matrix. These vectors are also known as generalized eigenvectors. The length of the $i$th chain, $n_i$, depends the number of coalescing eigenvectors, and is therefore the same as the order of the corresponding EP. Note that for eigenvectors not involved in an EP, i.e., for eigenvectors which have not coalesced, the Jordan chain is of length one, only consisting of the eigenvectors themselves. Creating these chains for each linearly independent eigenvector results in $q$ Jordan chains, each of which are collected into the matrices
@@ -168,7 +168,7 @@ Translating this theory into the language of Liouvillian physics, the underlying
 \begin{equation}
     \diff{\rho(t)}{t}= \mathcal{L} \rho(t) \rightarrow \diff{}{t}\ket{\rho(t)}\rangle = L \ket{\rho(t)}\rangle,
 \end{equation}
-where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written in terms of the eigenvalues and generalized eigenvectors of $L$.
+where $L$ is the matrix representation of the Liouvillian and $\ket{\rho(t)}\rangle$ the vectorized density matrix. Using \cref{eq:genmode}, the solution can then be written in terms of the eigenvalues and generalized eigenvectors of $L$. \Cref{eq:genmode} is very general since it can be used for any orders of the EP, including when the system is not at an exceptional point.
 
 % \begin{equation}\label{eq:genmodeFL}
 %     \ket{\rho(t)}\rangle = \sum_{i=1}^q \begin{bmatrix} \ket{\rho_i}\rangle, & \ket{\rho_i'}\rangle, & \ket{\rho_i''}\rangle, & \dots \end{bmatrix} e^{J_{n_i}(\lambda_i)t} \begin{bmatrix} \langle\bra{\sigma_i} \\ \langle\bra{\sigma_i'}\\ \langle\bra{\sigma_i'' } \\ \vdots \end{bmatrix}\ket{\rho(0)}\rangle.
