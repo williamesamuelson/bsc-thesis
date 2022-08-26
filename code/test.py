@@ -383,7 +383,11 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
         axis.plot(t_vec,
                   np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
                   linestyle=linestyle, linewidth=4)
+        # ss_dens = system.calc_ss_dens_matrix(rho_0)
+        # dists = np.linalg.norm(res_diag - ss_dens, axis=1)
+        # axis.plot(t_vec, dists/dists[0], linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=22)
+        # axis.set_ylabel(r'$||\rho(t) - \rho_{ss}||/N$', fontsize=22)
     elif plot == 'normal':
         axis.plot(t_vec, np.real(res_curr), linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$I(t)$', fontsize=20)
@@ -459,7 +463,7 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
     axis.tick_params(axis='both', which='major', labelsize=13)
     axis.tick_params(axis='both', which='minor', labelsize=11)
     axis.set_xlabel('Time ' + r'$(t)$', fontsize=20)
-    # plt.savefig('../text/figures/current_diff_rho_0v2.png', dpi=400,
+    # plt.savefig('../text/figures/rho_diff_rho0.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -555,7 +559,7 @@ def help_plot_curr_diffrho0(parallel_dots):
     ep = ExceptionalPoint(parallel_dots, 'inverse')
     t_vec = np.linspace(0, 15)
     rhos = [(1,), (2,), (3,), (1, 3)]
-    consts = [(1,), (1,), (1,), (0.1, -150)]
+    consts = [(1,), (10,), (1,), (1, -15)]
     plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep)
 
 
@@ -576,4 +580,3 @@ if __name__ == '__main__':
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
     help_plot_curr_diffrho0(parallel_dots)
-
