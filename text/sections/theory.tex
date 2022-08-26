@@ -1,7 +1,7 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figures/}}}
 \begin{document}
-The theory part of the thesis is divided into three sections. Firstly, a brief overview of the theory behind transport through quantum dots is given. Then, the focus is turned to some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final section will further explain the notion of exceptional points, and introduce a couple of important tools used in exceptional point physics.
+The theory chapter of the thesis is divided into three sections. Firstly, a brief overview of the theory behind transport through quantum dots is given. Then, the focus is turned to some of the tools used in open quantum systems, ultimately ending in a section about quantum master equations. The final section will further explain the notion of exceptional points, and introduce a couple of important tools used in exceptional point physics. Throughout the following parts of the thesis, we will set $\hbar=1$, $k_b=1$, and $|e|=1$.
 
 \section{Transport through quantum dots}
 To begin understanding the transport of electrons through a system of quantum dots, it is insightful to first study the single quantum dot system. The following explanation is inspired by reference~\cite{transport}.
@@ -38,7 +38,7 @@ The average measured value of an observable $\hat O$ of an ensemble represented 
 \end{equation}
 From the density operator one can therefore extract all signifiant information from the ensemble, and it can be described as the "state" of the system. It is also possible to calculate how the density operator evolves over time. Under a Hamiltonian $\hat H$, the evolution is given by the von Neumann equation
 \begin{equation}\label{vonneumann}
-    i\hbar\diff{\hat\rho}{t} = [\hat H, \hat\rho] \equiv \mathcal{L}\hat\rho,
+    \diff{\hat\rho}{t} = i[\hat \rho, \hat H] \equiv \mathcal{L}\hat\rho,
 \end{equation}
 where $\mathcal{L}$ is the Liouvillian superoperator, or just the Liouvillian~\cite{bookopen}. 
 
@@ -57,54 +57,63 @@ An important framework for determining the dynamics of an open quantum system is
 \end{equation}
 with probabilities $p_i$ of being in state $\ket{\psi_i}$, and transition rates $R_{ij}$ describing the rate of transitions from $\ket{\psi_i}$ to $\ket{\psi_j}$. As an example, the states in a quantum dot system may correspond to the number of electrons on the dot while the transition rates are typically related to the Fermi-Dirac distributions of the reservoirs and the tunneling rates of the barriers~\cite{transport}.
 
-Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$ such that the total probability is unity, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods for first order differential equations, such as the Runge-Kutta method~\cite{iserles}. Once the probabilities are obtained, the evolution of the current can be calculated by considering the amount of charge tunneling through the barriers at each point in time~\cite{transport}.
+Collecting the rate equations for each $i$ and adding the condition $\sum_i p_i = 1$ such that the total probability is unity, a system of ordinary differential equations is obtained. This can be solved numerically using standard methods for first order differential equations, such as the Runge-Kutta method~\cite{iserles}. Once the probabilities $p_i(t)$ are obtained, the evolution of the system can be calculated. Returning to the quantum dot example, the transient dynamics of the current can then be calculated by considering the amount of charge tunneling through the barriers at each point in time, which is directly related to the tunneling rates and probabilities $p_i(t)$ ~\cite{transport}.
 
 While a classical master equation may give accurate results for some quantum systems, it leaves out important physics. A quantum master equation generalizes the notion of a classical master equation in the following sense: The unknown in a quantum master equation does not only contain the probabilities $p_i$ of being in a quantum state $\ket{\psi_i}$, but also the coherences. Hence, a quantum master equation involves the full density matrix while a classical master equation only includes the diagonal elements. However, since it always is possible to find a basis such that the density matrix is diagonal, the two master equations can be equivalent in certain bases.
 
-The starting point for quantum master equations is \cref{vonneumann}, the von Neumann equation, for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix (from now on written as $\hat\rho$) of the system of interest can be obtained. However, the resulting equation still includes the total density operator and approximations have to be made~\cite{lindblad}. One common approximation is to assume that the coupling between the system and the environment is weak in comparison to the other energy scales of the system. This way, the interaction can be treated perturbatively, and progress can be made. One of the most established quantum master equations, the Lindblad equation, is derived in this fashion~\cite{lindorigin}, and is given by
+The starting point for quantum master equations is \cref{vonneumann}, the von Neumann equation, for the density matrix of the total system. Using the partial trace, a differential equation for the reduced density matrix of the system of interest (from now on written as $\hat\rho$) can be obtained. However, the resulting equation still includes the total density operator and approximations have to be made~\cite{lindblad}. One common approximation is to assume that the coupling between the system and the environment is weak in comparison to the other energy scales of the system. This way, the interaction can be treated perturbatively. One of the most established quantum master equations, the Lindblad equation, is derived in this fashion~\cite{lindorigin}, and is given by
 \begin{equation}\label{eq:lind}
     \diff{\hat\rho}{t} = i[\hat\rho, \hat H_\text{eff}] + \sum_i \hat L_i\hat\rho\hat L_i^\dag - \frac{1}{2}\hat\rho\hat L_i^\dag\hat L_i - \frac{1}{2}\hat L_i^\dag\hat L_i \hat\rho \equiv \mathcal{L}\hat\rho,
 \end{equation}
-where $\hat H_\text{eff}$ is the sum of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment~\cite{lindblad}. The operators $\hat L_i$ are the so called jump operators, which capture the coupling processes to the environment. In Ref.~\cite{perlind}, a phenomenological approach for calculating the jump operators is described. Using this so called PERLind approach, the jump operators are (something). Once the jump operators are constructed and the first term of \cref{eq:lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. 
+where $\hat H_\text{eff}$ is the sum of two terms: the subsystem Hamiltonian $\hat H_\text{S}$ and the Lamb shift Hamiltonian $\hat H_\text{LS}$, a renormalization of energy levels due to the interaction with the environment~\cite{lindblad}. The operators $\hat L_i$ are the so called jump operators, which capture the coupling processes to the environment. In Ref.~\cite{perlind}, a phenomenological approach for calculating the jump operators is described. Using this so called PERLind approach, each jump operator is associated with an actual, physical process. Taking a quantum dot system as an example, every jump operator then represents a certain tunneling event. Once the jump operators are constructed and the first term of \cref{eq:lind} is calculated, an expression for the Liouvillian $\mathcal{L}$ can be obtained. 
 
-The right hand side of the Lindblad equation can be divided into two parts. The first term, $i[\hat\rho, \hat H_\text{eff}]$, describes the unitary, free evolution of the system. A simple example of a free evolution would be the precession of magnetic moment in a magnetic field. The sum over $i$ on the other hand, correspond to the non-unitary and dissipative part of the dynamics~\cite{bookopen}. The latter part causes the total Liouvillian to be non-Hermitian, which brings the possibility of exceptional points in the matrix representation of the Liouvillian. EPs in the Liouvillian superoperator lead to signatures in the dynamics of the density operator. This will be further developed in the next section.  
+The right hand side of the Lindblad equation can be divided into two parts. The first term, $i[\hat\rho, \hat H_\text{eff}]$, describes the unitary, free evolution of the system. A simple example of a free evolution would be the precession of magnetic moment in a magnetic field. The sum over $i$ on the other hand, correspond to the non-unitary and dissipative part of the dynamics~\cite{bookopen}. The latter part causes the total Liouvillian to be non-Hermitian, which brings the possibility of exceptional points in the matrix representation of the Liouvillian.
 
 %One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
 \section{Exceptional points}\label{sec:ep}
 A matrix which describes the evolution of a physical system, such as a Hamiltonian or a Liouvillian matrix, generally depends on the parameters of the system. These parameters span the so called parameter space, and it is in this space the exceptional points lie. An exceptional point is defined as a point in the parameter space which causes two or more eigenvalues and their eigenvectors to simultaneously coalesce~\cite{nonHermrev}. An EP is said to be of a certain order, reflecting how many eigenvectors coalesce at the point. The notion of exceptional points and its orders are directly related to a type of matrix decomposition, the Jordan normal form.
 
-\subsection{Jordan normal form}
+\subsection{Jordan normal form}\label{sec:jordan}
 
-In physics, a common way to simplify calculations is to diagonalize the matrix generating the evolution of the system. The diagonalization process can be understood a change of basis to linearly independent eigenvectors. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue $\lambda_i$. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
+In physics, a common way to simplify calculations is to diagonalize the matrix generating the evolution of the system. The diagonalization process can be understood a change of basis to linearly independent eigenvectors, obeying $Ar_i=\lambda_ir_i$~\cite{uffe}.. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue $\lambda_i$. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
 \end{equation}
-where $S = (r_1, \dots ,r_n)$ consists of the eigenvectors of $A$, obeying $Ar_i=\lambda_ir_i$~\cite{uffe}.
+where $S = (r_1, \dots ,r_n)$ consists of the eigenvectors of $A$.
 
 However, not all matrices can be diagonalized, the exceptions being called defective matrices. For a defective matrix, there does not exist a basis of eigenvectors, and the diagonalization process is not possible~\cite{uffe}. This is closely related to the notion of exceptional points, since when two eigenvectors coalesce, one dimension is lost and the eigenvectors do not form a basis anymore. A matrix at an EP is therefore always defective.
 
 Fortunately, there is a notion of an "almost diagonal" form for defective matrices, called the Jordan normal form. Recall that in the diagonalizable case, the basis is changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using Jordan chains~\cite{uffe}, which for each eigenvector $r_i$ with eigenvalue $\lambda_i$, consist of vectors $r_i, r_i^{(2)}, \dots,   r_i^{(n_i)}$ defined by
 \begin{equation}\label{jordanchain}
 \begin{aligned}
-    (A-\lambda_iI)r_i &= 0 \\
-    (A-\lambda_iI)r_i^{(2)} &= r_i \\
-    (A-\lambda_iI)r_i^{(3)} &= r_i^{(2)} \\
+    (A-\lambda_iI)r_i &= 0, \\
+    (A-\lambda_iI)r_i^{(2)} &= r_i, \\
+    (A-\lambda_iI)r_i^{(3)} &= r_i^{(2)}, \\
     &\;\;\vdots \\
     (A-\lambda_iI)r_i^{(n_i)} &= r_i^{(n_i-1)},
 \end{aligned}
 \end{equation}
-where $I$ is the identity matrix. These vectors are also known as generalized eigenvectors. The length of the $i$th chain, $n_i$, depends the number of coalescing eigenvectors, and is therefore the same as the order of the corresponding EP. Note that for eigenvectors not involved in an EP, i.e., for eigenvectors which have not coalesced, the Jordan chain is of length one, only consisting of the eigenvectors themselves. Creating these chains for each linearly independent eigenvector results in $q$ Jordan chains, each of which are collected into the matrices
-\begin{equation}
-    \{\boldsymbol{r}_i\}_{i=1}^q, \text{ where }\boldsymbol{r}_i = (r_i, r_i^{(2)},\dots ,r_i^{(n_i)}).
-\end{equation}
-Here, the bold font indicates a collection of column vectors next to each other, forming a matrix. The collection of generalized eigenvectors from all Jordan chains is called the canonical basis of the transformation. Using this new basis, the matrix $A$ can be transformed into its Jordan form $J$ with the transformation matrix 
-\begin{equation}\label{chofba}
-    M = (\boldsymbol{r}_1, \dots, \boldsymbol{r}_q),
-\end{equation}
-which also is known as the modal matrix. There is also a notion of \textit{left} generalized eigenvectors. A regular left eigenvector $l_i$ to $A$ is a row vector, defined by $l_iA = \lambda_iA$. These can then be extended to left generalized eigenvectors in a similar way as the right ones, given by \cref{jordanchain}, into Jordan chains. These left generalized eigenvectors can be constructed biorthogonally to the right ones, such that 
+where $I$ is the identity matrix. The length of the $i$th chain, $n_i$, depends the number of coalescing eigenvectors, and is therefore the same as the order of the corresponding EP. Note that for eigenvectors not involved in an EP, i.e., for eigenvectors which have not coalesced, the Jordan chain is of length one, only consisting of the eigenvectors themselves.
 
-The Jordan normal form of $A$ is then obtained by forming $J = M^{-1}AM$ and has the following structure: 
+The vectors forming the Jordan chain are also known as the right generalized eigenvectors, which indicates the notion of \textit{left} generalized eigenvectors. Regular left eigenvectors $l_i$ are row vectors, defined by $l_iA = \lambda_iA$. These can then be extended to left generalized eigenvectors in a similar way as the right ones, forming Jordan chains $l_i, l_i^{(2)}, \dots, l_i^{(n_i)}$. The left generalized eigenvectors can be constructed such that $l_i^{(s)}r_j^{(t)}=\delta_{ij}\delta_{st}$, i.e, biorthogonally to the right generalized eigenvectors~\cite{nonHermrev}. Creating these left and right Jordan chains for each linearly independent eigenvector results in $q$ pairs of chains, each of which are collected into the matrices
+\begin{equation}
+    \begin{aligned}
+        &\{\boldsymbol{r}_i\}_{i=1}^q, \text{ where }\boldsymbol{r}_i = \begin{bmatrix}r_i&r_i^{(2)}&\dots &r_i^{(n_i)}\end{bmatrix},\\
+        &\{\boldsymbol{l}_i\}_{i=1}^q, \text{ where }\boldsymbol{l}_i = \begin{bmatrix}l_i\\ l_i^{(2)}\\\dots \\ l_i^{(n_i)}\end{bmatrix}\\
+    \end{aligned}
+\end{equation}
+Here, the bold font in $\boldsymbol{r}_i$ ($\boldsymbol{l}_i$) indicates a collection of column (row) vectors next to (below) each other, forming a matrix. The set of right generalized eigenvectors from all Jordan chains is called the canonical basis of the transformation. Using this new basis, the transformation matrix $M$ can be formed:
+\begin{equation}\label{chofba}
+    M = \begin{bmatrix}\boldsymbol{r}_1 \dots \boldsymbol{r}_q\end{bmatrix},
+\end{equation}
+which also is known as the modal matrix. The inverse modal matrix $M^{-1}$, can be formed in terms of the left generalized eigenvectors: 
+\begin{equation}\label{chofbaleft}
+    M^{-1} = \begin{bmatrix}\boldsymbol{l}_1\\ \vdots \\ \boldsymbol{l}_q\end{bmatrix},
+\end{equation}
+since $\boldsymbol{l}_j \boldsymbol{r}_i = \delta_{ij}I$ where $I$ is the $n_j\times n_i$ identity matrix. This follows from the biorthogonality of the left and right generalized eigenvectors.
+
+The Jordan normal form of $A$ is then finally obtained by forming $J = M^{-1}AM$ and has the following structure: 
 \begin{equation}\label{eq:jordan}
     J = \begin{bmatrix}J_{n_1}(\lambda_1) & \dots & 0 \\
                             \vdots & \ddots & \vdots \\
@@ -116,16 +125,17 @@ The Jordan normal form of $A$ is then obtained by forming $J = M^{-1}AM$ and has
 \end{equation}
 The Jordan form hence consists of $q$ Jordan blocks $J_{n_i}(\lambda_i)$ on the diagonal, where each block is of size $n_i$ and consists of its eigenvalue on the diagonal and ones on the super diagonal~\cite{uffe}. Note that if all blocks are of size one, i.e., there are no exceptional points, the Jordan form is diagonal. The Jordan normal form can therefore be thought of a generalization of the diagonal form $D$.
 
-A simple example of the construction of a Jordan normal form is helpful to understand the process.
+%A simple example of the construction of a Jordan normal form is helpful to understand the process.
 
-Unfortunately, the Jordan form of a matrix is notoriously difficult to calculate numerically. This stems from the fact that an arbitrary small perturbation away from an EP completely changes the Jordan form. The process is therefore inherently numerically unstable. For simple cases, it is however possible to work around this difficulty. By introducing a small tolerance to determine if eigenvalues and their eigenvectors have coalesced, one can then infer the block structure of the Jordan form and construct it manually.
+Unfortunately, the Jordan form of a matrix is notoriously difficult to calculate numerically. This stems from the fact that an arbitrary small perturbation away from an EP completely changes the Jordan form. The process is therefore inherently numerically unstable~\cite{horn}. For simple cases, it is however possible to work around this difficulty by introducing a small tolerance to determine if eigenvalues and their eigenvectors have coalesced. One can then infer the block structure of the Jordan form and construct it manually.
 
-To be able to use the Jordan form in calculations, a substitution $A\rightarrow MJM^{-1}$ has to be made, and hence, the matrices $M$ and $M^{-1}$ are also desirable to compute. The matrix $M$ consists of the generalized eigenvectors, which can be calculated by the following process. Firstly, the regular eigenvectors are calculated by some numerical method, e.g., the \verb+numpy.linalg.eig+ function in Python. If there are coalesced eigenvectors, the corresponding Jordan chains need then to be computed. This can be done by solving the defining equations for the generalized eigenvectors given by \cref{jordanchain}. However, since $A-\lambda_iI$ is not of full rank, the equations are underdetermined, meaning that there does not exist a unique solution. A standard way of solving this problem is by using the Moore-Penrose pseudoinverse, which finds one of the solutions to the equation~\cite{uffe}. This process is then repeated until the full Jordan chains for each set of coalescing eigenvectors are calculated, obtaining all of the generalized eigenvectors and hence, the modal matrix $M$. 
+To be able to use the Jordan form in calculations, a substitution $A\rightarrow MJM^{-1}$ has to be made, and hence, the matrices $M$ and $M^{-1}$ are also desirable to compute numerically. These matrices consist of the right and left generalized eigenvectors, which can be calculated by the following process. Firstly, the regular eigenvectors are calculated by some numerical method, e.g., the \verb+scipy.linalg.eig+ function in Python. If there are coalesced eigenvectors (within the tolerance), the corresponding Jordan chains need then to be computed. This can be done by solving the defining equations for the generalized eigenvectors given by \cref{jordanchain}. However, since $A-\lambda_iI$ is not of full rank, the equations are underdetermined, meaning that there does not exist a unique solution. A standard way of solving this problem is by using the Moore-Penrose pseudoinverse, which finds one of the solutions to the equation~\cite{uffe}. This process is then repeated until the full Jordan chains for each set of coalescing eigenvectors are calculated, obtaining all of the generalized eigenvectors. Finally, by biorthogonalizing the two set of vectors, the modal matrix $M$ and its inverse $M^{-1}$ are obtained. Alternatively, $M^{-1}$ can be calculated by numerically inverting $M$. 
 
-A straightforward way of calculating the inverse modal matrix $M^{-1}$, is just to numerically invert $M$. However in the literature regarding Liouvillian exceptional points, the rows in $M^{-1}$ is often referred to as the \textit{left} generalized eigenvectors. Explain what they are. These can be constructed biorthonormally to the regular generalized eigenvectors, effectively creating $M^{-1}$. The left generalized eigenvectors can be numerically calculated by a similar method as the right ones. However, these then have to be modified such that they are orthogonal to the right generalized eigenvectors, which can be done using LU-decomposition. We now turn our attention to a useful application of the Jordan normal form, ODEs.
+
+%A straightforward way of calculating the inverse modal matrix $M^{-1}$, is just to numerically invert $M$. However in the literature regarding Liouvillian exceptional points, the rows in $M^{-1}$ is often referred to as the \textit{left} generalized eigenvectors. Explain what they are. These can be constructed biorthonormally to the regular generalized eigenvectors, effectively creating $M^{-1}$. The left generalized eigenvectors can be numerically calculated by a similar method as the right ones. However, these then have to be modified such that they are orthogonal to the right generalized eigenvectors, which can be done using LU-decomposition. We now turn our attention to a useful application of the Jordan normal form, ODEs.
 
 \subsection{General solution of ODEs}
-An ordinary differential equation (ODE) is a linear differential equation of the form
+A useful application of the Jordan form is for analytical solutions of ordinary differential equations (ODEs). An ODE is a linear differential equation of the form
 \begin{equation}\label{eq:ode}
     \diff{x}{t}=Ax. 
 \end{equation}
@@ -155,17 +165,15 @@ To show this, suppose first that the initial state is in such an initial state, 
 \begin{equation}
     x(0) = a_1r_i + a_2r_i^{(2)} + \dots + a_{n_i}r_i^{(n_i)} = \boldsymbol{r}_ia,
 \end{equation}
-where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Then we rewrite $M^{-1}$ as
-\begin{equation}
-    M^{-1} = \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix},\end{equation}
-    where each $\boldsymbol{l}_i$ contain $n_i$ row vectors. Since $M^{-1}M=I$, it follows that $\boldsymbol{l}_j \boldsymbol{r}_i = \delta_{ij}I$ where $I$ is the $n_j\times n_i$ identity matrix. Inserting this into \cref{jordanode}, the solution can be written as
+where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Inserting this into \cref{jordanode}, the solution can be written as
 \begin{equation}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
 \end{equation}
 Hence, the solution stays in the space spanned by the initial condition throughout the evolution, as earlier proposed. For an arbitrary initial condition, the solution can be written as a sum over these generalized modes: 
 \begin{equation}\label{eq:genmode}
-    x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0).
+    x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0),
 \end{equation}
+and the initial condition therefore decides what modes are included in the dynamics of the system.
 
 Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation, transformed to Fock-Liouville space    
 \begin{equation}
