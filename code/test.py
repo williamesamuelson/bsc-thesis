@@ -350,7 +350,7 @@ def print_trace_evo(system, t_vec, rho_0, method, ep=None):
 
 
 def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
-                 linestyle, ep=None):
+                 linestyle, curr=True, ep=None):
     """Plots the current over time.
 
     Parameters:
@@ -380,14 +380,16 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
         axis.set_ylabel(r'$I(t)/I_{ss}$', fontsize=20)
     elif plot == 'subtract_log':
         axis.set_yscale("log", base=10)
-        axis.plot(t_vec,
-                  np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
-                  linestyle=linestyle, linewidth=4)
-        # ss_dens = system.calc_ss_dens_matrix(rho_0)
-        # dists = np.linalg.norm(res_diag - ss_dens, axis=1)
-        # axis.plot(t_vec, dists/dists[0], linestyle=linestyle, linewidth=4)
-        axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=22)
-        # axis.set_ylabel(r'$||\rho(t) - \rho_{ss}||/N$', fontsize=22)
+        if curr:
+            axis.plot(t_vec,
+                      np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
+                      linestyle=linestyle, linewidth=3)
+            axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=15)
+        else:
+            ss_dens = system.calc_ss_dens_matrix(rho_0)
+            dists = np.linalg.norm(res_diag - ss_dens, axis=1)
+            axis.plot(t_vec, dists/dists[0], linestyle=linestyle, linewidth=3)
+            axis.set_ylabel(r'$||\rho(t) - \rho_{ss}||/N$', fontsize=15)
     elif plot == 'normal':
         axis.plot(t_vec, np.real(res_curr), linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$I(t)$', fontsize=20)
@@ -427,7 +429,7 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
     plt.show()
 
 
-def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
+def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep, curr):
     """Plots current for varying initial conditions.
 
     Parameters:
@@ -442,7 +444,7 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
     ep -- ExceptionalPoint object
     """
 
-    fig, axis = plt.subplots()
+    fig, ax = plt.subplots(figsize=(5,3))
     leg = []
     linestyles = ['solid', 'dashed', 'solid', 'dashdot']
     for i, (rho_tuple, const_tuple) in enumerate(zip(rhos, consts)):
@@ -453,17 +455,17 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep):
         tot_overlap = sum(np.abs(ep.L.conj().T@rho_0))
         overlap = np.abs(np.vdot(ep.L[:, 2], rho_0))
         leg.append(f'Overlap = {np.real(overlap/tot_overlap):.2f}')
-        plot_current(system, t_vec, rho_0, direction, axis, 'subtract_log',
-                     method, linestyles[i], ep)
+        plot_current(system, t_vec, rho_0, direction, ax, 'subtract_log',
+                     method, linestyles[i], curr, ep)
 
         leg = [r"$\rho_0: \rho_{ss},  \bar{\rho}$",
-                r"$\rho_0: \rho_{ss}, \rho'$", r"$\rho_0 :\rho_{ss}, \rho_3$", 
-                r"$\rho_0: \rho_{ss}, \bar{\rho}, \rho_3$"]
-    axis.legend(leg, fontsize=17)
-    axis.tick_params(axis='both', which='major', labelsize=13)
-    axis.tick_params(axis='both', which='minor', labelsize=11)
-    axis.set_xlabel('Time ' + r'$(t)$', fontsize=20)
-    # plt.savefig('../text/figures/rho_diff_rho0.png', dpi=400,
+               r"$\rho_0: \rho_{ss}, \rho'$", r"$\rho_0 :\rho_{ss}, \rho_3$",
+               r"$\rho_0: \rho_{ss}, \bar{\rho}, \rho_3$"]
+    ax.legend(leg, fontsize=12)
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    ax.tick_params(axis='both', which='minor', labelsize=8)
+    ax.set_xlabel('Time ' + r'$(t)$', fontsize=15)
+    # plt.savefig('../text/figures/rho_diff_rho0_v3.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -559,8 +561,8 @@ def help_plot_curr_diffrho0(parallel_dots):
     ep = ExceptionalPoint(parallel_dots, 'inverse')
     t_vec = np.linspace(0, 15)
     rhos = [(1,), (2,), (3,), (1, 3)]
-    consts = [(1,), (10,), (1,), (1, -15)]
-    plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep)
+    consts = [(1,), (1,), (1,), (1, -15)]
+    plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep, False)
 
 
 if __name__ == '__main__':
