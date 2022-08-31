@@ -1,7 +1,9 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figures/}}}
 \begin{document}
-In this thesis, a particular quantum dot system was studied, consisting of two quantum dots connected to two leads in thermal equilibrium. The quantum dots are assumed to be coupled in parallel to the leads, meaning that the dots are coupled to the same lead on each side. Furthermore, it is assumed that there is no direct tunneling between the dots, however with a non-zero Coulomb interaction between the dots if they are both occupied. A sketch of the model is given in \cref{fig:model}.
+Equipped with the necessary theory, the dynamics of the parallel QD system can now be simulated. The equation of motion for the system is the Lindblad equation, given by \cref{eq:lind}, for the reduced density operator of the two quantum dots. In Fock-Liouville space, this is equation given by \cref{eq:lindfock}, with a matrix representation of the Liouvillian $L$. Specifying the values of the parameters of the system, $L$ can be constructed from the jump operators and the effective Hamiltonian in the Lindblad equation. By then searching for coalescing eigenvalues and eigenvectors of $L$ in the parameter space, EPs can be located, at which the dynamics obey \cref{eq:genmode}. Finally, \cref{eq:expec} can be used to simulate the transient current through the parallel QD system.
+\section{Modeling the parallel QD}
+In this thesis, a particular quantum dot system was studied, consisting of two quantum dots connected to two leads in thermal equilibrium. The quantum dots are assumed to be coupled in parallel to the leads, meaning that the dots are coupled to the same lead on each side. Furthermore, it is assumed that there is no direct tunneling between the dots. However, we consider an interacting system, with a finite contribution from the Coulomb repulsion between the electrons in the case of double occupancy. A sketch of the model is given in \cref{fig:model}.
 \begin{figure}[H] \centering
     \includegraphics[width=0.8\linewidth]{figures/model.pdf}
     \caption{The modeled parallel dot system, where the quantum dots in the center have energies $\epsilon_1$ and $\epsilon_2$. Located on the sides are the two reservoirs $R,L$ with temperatures $T_{L/R}$ and chemical potentials $\mu_{L/R}$. The allowed tunneling processes are indicated with arrows, with corresponding tunneling rates $\Gamma \pm \delta\Gamma$.}
@@ -9,7 +11,11 @@ In this thesis, a particular quantum dot system was studied, consisting of two q
 \end{figure}
 To reduce the dimension of the parameter space, a fixed tunneling rate $\Gamma$ and a variable tunneling detuning $\delta\Gamma$ are introduced. The four tunneling rates in terms of $\Gamma$ and $\delta\Gamma$ are assumed to be asymmetric, as indicated by \cref{fig:model}. It is also assumed that each dot is restricted to be either empty or contain one (spinless) electron in the ground state of the dot. The energy of the ground state $\epsilon_{1/2} = -V_\text{G} \pm \delta\epsilon$ is given in terms of a fixed gate voltage $V_\text{G}=0$ and a variable energy detuning $\delta\epsilon$.  Furthermore, the temperatures of the leads $T_\text{L}=T_\text{R}=10\Gamma$, the chemical potentials $\mu_\text{L/R} = \pm V_\text{SD}/2$, the bias voltage $V_\text{SD} = 300\Gamma$, and the Coulomb energy $U = 250\Gamma$, are all fixed in terms of $\Gamma$. This leaves the two tuning parameters, $\delta\Gamma$ and $\delta\epsilon$, as the only parameters of the system, resulting in a two dimensional parameter space. 
 
-The Hamiltonian of the total system can be modeled by $\hat H = \hat H_\text{QD} + \hat H_\text{leads} + \hat H_\text{tunneling}$, where the three terms correspond to the quantum dot, lead, and tunneling Hamiltonians:
+The total system can be modeled by the Hamiltonian
+\begin{equation}
+    \hat H = \hat H_\text{QD} + \hat H_\text{leads} + \hat H_\text{tunneling},
+\end{equation}
+where the three terms correspond to the quantum dot, lead, and tunneling Hamiltonians
 \begin{equation}
     \begin{split}
         \hat H_\text{QD} &= \sum_{i=1,2} \epsilon_i \hat d_i^\dag \hat d_i  + U\hat d_1^\dag \hat d_1 \hat d_2^\dag \hat d_2, \\
@@ -17,11 +23,11 @@ The Hamiltonian of the total system can be modeled by $\hat H = \hat H_\text{QD}
         \hat H_\text{tunneling} &= \sum_{i=1,2} \; \sum_{k,s=\text{L,R}} t_{s,i} \hat c_{s,k}^\dag \hat d_i + t_{s,i}^* \hat d_i^\dag \hat c_{s,k},
     \end{split}
 \end{equation}
-where $\hat d_i^\dag$, $i\in\{1,2\}$, creates an electron in dot 1 or 2, and $\hat c_{l,k}^\dag$, $s\in\{\text{L,R}\}$, creates an electron in the left (L) or right (R) lead with momentum $k$ and energy $E_{s,k}$~\cite{doubledot}. The tunneling amplitudes $t_{s,i}$ can be approximated to be energy independent and are directly related to the corresponding tunneling rates by 
+where $\hat d_i^\dag$ ($\hat d_i$), $i\in\{1,2\}$, creates (annihilates) an electron in dot 1 or 2, and $\hat c_{l,k}^\dag$~($\hat c_{l,k}$), $s\in\{\text{L,R}\}$, creates (annihilates) an electron in the left (L) or right (R) lead with momentum $k$ and energy $E_{s,k}$~\cite{doubledot}. The tunneling amplitudes $t_{s,i}$ are directly related to the corresponding tunneling rates by 
 \begin{equation}
     \Gamma_{s,i} = 2\pi\nu_F|t_{s,i}|^2,
 \end{equation}
-where $\nu_F$ is the density of states in the lead~\cite{perlind}.
+where $\nu_F$ is the density of states in the lead, which is assumed to be independent of energy~\cite{perlind}.
 
 To represent the operators in matrix form, the many-body eigenstates of the isolated quantum dot Hamiltonian are used as the basis:
 \begin{equation}\label{eq:basis}
@@ -40,9 +46,16 @@ where $n_1$ and $n_2$ in $\ket{n_1n_2}$ are the number of electrons in dot first
     \end{aligned}
 \end{equation}
 
-In the basis given by \cref{eq:basis}, the elements of the reduced density matrix can be written as $\rho_{\alpha\beta}$, where $\alpha,\beta\in\{a,b,c,d\}$, with 16 matrix elements. However, the only non-zero off-diagonal elements are $\rho_{bc}$ and $\rho_{cb}$, i.e, the elements which corresponds to superpositions the two states with one occupied dot. This is the result of charge being a conserved quantity in the total system (source?). The number of elements in $\ket{\rho}\rangle$ is therefore reduced to 6, which in turn means that the Liouvillian effectively can be represented by a $6\times6$ matrix.
+In the basis given by \cref{eq:basis}, the elements of the reduced density matrix can be written as $\rho_{\alpha\beta}$, where $\alpha,\beta\in\{a,b,c,d\}$, with 16 matrix elements. However, the only non-zero off-diagonal elements are $\rho_{bc}$ and $\rho_{cb}$, i.e, the elements which corresponds to superpositions the two states with one occupied dot. This is the result of charge being a conserved quantity in the total system (source?). The number of elements in $\ket{\rho}\rangle$ is therefore reduced to 6, which in turn means that the Liouvillian effectively can be represented by a $6\times6$ matrix. The vectorization of the density matrix can be done in several ways, but in this thesis it is given by
+\begin{equation}\label{eq:order}
+    \rho = \begin{bmatrix} \rho_{aa} & 0 & 0 & 0 \\
+                    0 & \rho_{bb} & \rho_{bc} & 0 \\
+                    0 & \rho_{cb} & \rho_{cc} & 0 \\
+                    0 & 0 & 0 & \rho_{dd} \end{bmatrix} \rightarrow \ket{\rho}\rangle = \begin{bmatrix} \rho_{aa} \\ \rho_{bb} \\ \rho_{cc} \\ \rho_{dd} \\ \operatorname{Re}\rho_{bc} \\ \operatorname{Im}\rho_{bc}\end{bmatrix},
+\end{equation}
+which is an equivalent representation since the density matrix is Hermitian.
 
-To be able to justify the Lindblad approach for calculating the dynamics of the system, one more major approximation have to be made regarding the coupling between the dots and the leads. We must assume that the strength of the coupling between the system and the environment is weak in comparison with the other energy scales in the system, i.e., $\Gamma \ll T, U$. In this limit, the Lindblad equation is a standard approach for investigating the dynamics of a quantum dot system.
+To be able to justify the Lindblad approach for calculating the dynamics of the system, one more major approximation has to be made regarding the coupling between the dots and the leads. We must assume that the strength of the coupling between the system and the environment is weak in comparison with the other energy scales in the system, i.e., $\Gamma \ll T, U$. In this so called weak-coupling limit, the Lindblad equation is a standard approach for investigating the dynamics of a quantum dot system. The time evolution of the reduced density matrix is then determined by \cref{eq:lind}.
 
 % The second main approximation is to assume that the interaction between the system and the environment is Markovian. A Markovian process is one in which the next time step only depends on the current state of the system. In a quantum dot system, this can be interpreted to mean that the leads "forget" that they have lost or gained an electron, right after the tunneling process has happened. Since the number of electrons in the leads typically is large, this can be a reasonable approximation for such systems.
 

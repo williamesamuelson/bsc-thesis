@@ -2,11 +2,14 @@ import pickle
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from scipy.integrate import solve_ivp
 from parallel_dots import ParallelDots
 from exceptional_point import ExceptionalPoint
 # from functions import my_floor, my_ceil
 
+rcParams['mathtext.fontset'] = 'cm'
+rcParams['font.family'] = 'STIXGeneral'
 
 def stab_calc(system, vlst, vglst, delta_eps, dV=0.001):
     """ Calculate stability matrices (conductance and current) of QD-system.
@@ -196,7 +199,7 @@ def plot_tuning(eigs, delta_epsilons, indices):
     ax_real.legend([r'$\lambda_5$', r'$\lambda_6$'], fontsize=16)
     # ax_spec.set_ylabel(r'Im$\lambda$', fontsize=fs)
     plt.tight_layout()
-    # plt.savefig('../text/figures/tuning.png', dpi=400)
+    plt.savefig('../text/figures/tuning.png', dpi=400)
     plt.show()
 
 
@@ -318,7 +321,7 @@ def plot_int_vs_diag(ax, system, t_vec, rho_0, method, ls, ep=None):
     norms = 1/2 * np.array(np.linalg.norm(res_diag - res_int, axis=1))
     norms_int = 1/2 * np.array(np.linalg.norm(res_int, axis=1))
     ax.plot(t_vec, norms/norms_int, linestyle=ls, linewidth=4)
-    fs = 23
+    fs = 25
     if method == 'ep':
         ylabel = r'$\mathcal{D}(\rho_{EP}, \rho_{int})$'
     else:
@@ -327,10 +330,10 @@ def plot_int_vs_diag(ax, system, t_vec, rho_0, method, ls, ep=None):
     ylabel = r'$\mathcal{D}(\rho, \rho_{int})$'
     ax.set_xlabel(r'Time $(t)$', fontsize=fs)
     ax.set_ylabel(ylabel, fontsize=fs)
-    ax.tick_params(axis='both', which='major', labelsize=15)
-    ax.tick_params(axis='both', which='minor', labelsize=13)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='minor', labelsize=14)
     t = ax.yaxis.get_offset_text()
-    t.set_size(15)
+    t.set_size(20)
 
 
 
@@ -366,7 +369,9 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
           dens_matrix_evo_ep
     """
 
-    res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep)
+    # t_vec, res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep, num_tvec=True)
+    res_diag = calc_dens_evo(system, t_vec, rho_0, method, ep, num_tvec=False)
+    
     res_curr = [system.calc_current(res_diag[i, :], direction)
                 for i in range(len(t_vec))]
     ss_curr = system.calc_ss_current(rho_0, direction)
@@ -383,13 +388,13 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
         if curr:
             axis.plot(t_vec,
                       np.abs(res_curr - ss_curr)/np.abs(res_curr[0] - ss_curr),
-                      linestyle=linestyle, linewidth=3)
-            axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=15)
+                      linestyle=linestyle, linewidth=4)
+            axis.set_ylabel(r'$|I(t) - I_{ss}|/N$', fontsize=20)
         else:
             ss_dens = system.calc_ss_dens_matrix(rho_0)
             dists = np.linalg.norm(res_diag - ss_dens, axis=1)
-            axis.plot(t_vec, dists/dists[0], linestyle=linestyle, linewidth=3)
-            axis.set_ylabel(r'$||\rho(t) - \rho_{ss}||/N$', fontsize=15)
+            axis.plot(t_vec, dists/dists[0], linestyle=linestyle, linewidth=4)
+            axis.set_ylabel(r'$||\rho(t) - \rho_{ss}||/N$', fontsize=20)
     elif plot == 'normal':
         axis.plot(t_vec, np.real(res_curr), linestyle=linestyle, linewidth=4)
         axis.set_ylabel(r'$I(t)$', fontsize=20)
@@ -415,16 +420,17 @@ def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
     fig, ax = plt.subplots()
     diffs = delta_eps_ep - d_epsilons
     leg = []
+    linestyles = ['solid', 'dashed', 'dashdot']
     for i, (ep, d_epsilon, method) in enumerate(zip(eps, d_epsilons, methods)):
         parallel_dots.change_delta_eps(d_epsilon)
         parallel_dots.solve(lamb_shift=l_shift)
         plot_current(parallel_dots, t_vec, rho_0, direction, ax, 'divide',
-                     method, ep)
+                     method, linestyles[i], ep)
         leg.append(f'$\Delta/\delta\epsilon_{{EP}} = ${diffs[i]/delta_eps_ep: .2f}')
     ax.tick_params(axis='both', which='major', labelsize=13)
     ax.tick_params(axis='both', which='minor', labelsize=11)
     ax.legend(leg, fontsize=18)
-    # plt.savefig('../text/figures/curr_diff_dev2.png', dpi=400,
+    # plt.savefig('../text/figures/diffde_mixed.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -444,7 +450,7 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep, c
     ep -- ExceptionalPoint object
     """
 
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots()
     leg = []
     linestyles = ['solid', 'dashed', 'solid', 'dashdot']
     for i, (rho_tuple, const_tuple) in enumerate(zip(rhos, consts)):
@@ -461,11 +467,11 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep, c
         leg = [r"$\rho_0: \rho_{ss},  \bar{\rho}$",
                r"$\rho_0: \rho_{ss}, \rho'$", r"$\rho_0 :\rho_{ss}, \rho_3$",
                r"$\rho_0: \rho_{ss}, \bar{\rho}, \rho_3$"]
-    ax.legend(leg, fontsize=12)
-    ax.tick_params(axis='both', which='major', labelsize=10)
-    ax.tick_params(axis='both', which='minor', labelsize=8)
-    ax.set_xlabel('Time ' + r'$(t)$', fontsize=15)
-    # plt.savefig('../text/figures/rho_diff_rho0_v3.png', dpi=400,
+    ax.legend(leg, fontsize=19)
+    ax.tick_params(axis='both', which='major', labelsize=13)
+    ax.tick_params(axis='both', which='minor', labelsize=11)
+    ax.set_xlabel('Time ' + r'$(t)$', fontsize=20)
+    # plt.savefig('../text/figures/I_diff_rho0_nonvis.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
 
@@ -532,7 +538,7 @@ def help_plot_curr_epnonep(parallel_dots, DELTA_EPS):
     t_vec = np.linspace(0, 15, 100)
     ep = ExceptionalPoint(parallel_dots, 'full space')
     # rho_0 = ep.R[:, 0] - 1*ep.R[:, 2]
-    rho_0 = np.array([1, 0, 0, 0, 0, 0], dtype='complex')
+    rho_0 = 1/4*np.array([1, 1, 1, 1, 0, 0], dtype='complex')
     # rho_0 /= sum(rho_0[:4])
     d_epsilons = create_delta_eps(DELTA_EPS)
     plot_current_ep_vs_nonep(parallel_dots, t_vec, rho_0, 'right', d_epsilons,
@@ -561,8 +567,8 @@ def help_plot_curr_diffrho0(parallel_dots):
     ep = ExceptionalPoint(parallel_dots, 'inverse')
     t_vec = np.linspace(0, 15)
     rhos = [(1,), (2,), (3,), (1, 3)]
-    consts = [(1,), (1,), (1,), (1, -15)]
-    plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep, False)
+    consts = [(1,), (1,), (1,), (1, 15)]
+    plot_current_diff_rho0(parallel_dots, t_vec, rhos, consts, 'right', 'ep', ep, True)
 
 
 if __name__ == '__main__':
@@ -581,4 +587,6 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    help_plot_curr_diffrho0(parallel_dots)
+    delta_eps = np.linspace(0.25, 0.35, 300)
+    eigs = calc_tuning(delta_eps, parallel_dots, l_shift)
+    plot_tuning(eigs, delta_eps, [1,2])
