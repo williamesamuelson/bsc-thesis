@@ -23,7 +23,7 @@ The full spectrum of the Liouvillian at the exceptional point is given in \cref{
 
 Using \cref{eq:genmode}, the evolution of the system can be given in terms of the eigenvalues and generalized eigenvectors of $L$. Away from an exceptional point, the Liouvillian is diagonalizable, and the terms are purely exponential. The evolution of the density operator is then given by
 \begin{equation}\label{eq:dynnonep}
-    \ket{\rho(t)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^6 c_i e^{\lambda_i t} \ket{\rho_i}\rangle
+    \ket{\rho(t)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^6 c_i e^{\lambda_i t} \ket{\rho_i}\rangle,
 \end{equation}
 where $\ket{\rho_i}\rangle$ is the $i$th right eigenvector of $L$, and $c_i = \langle\braket{\sigma_i|\rho(0)}\rangle$. Here, $\langle\bra{\sigma_i}$ is the $i$th left eigenvector, constructed biorthogonally to $\ket{\rho_i}\rangle$ such that $\langle\braket{\sigma_i|\rho_j}\rangle = \delta_{ij}$, and $\ket{\rho_{ss}}\rangle = c_1 \ket{\rho_1}\rangle$ is the steady-state of the system. Furthermore, $\ket{\rho_{ss}}\rangle$ is the only eigenvector with unity trace, which implies that the rest of the other eigenvectors must be traceless for $\ket{\rho}\rangle$ to have unity trace. The eigenvectors $\ket{\rho_{i>1}}\rangle$ do therefore not describe physical states on their own.
 
@@ -98,7 +98,7 @@ This way, the constants $c$ in \cref{eq:dynep} are the same as the corresponding
         Dash-dotted, red & $\bar b = 1, b_3 = 15$ \\
     \end{tabular}
 \end{table}
-With initial conditions including only one $b_i\neq0$ or $\bar b\neq0$, i.e., only one normal eigenvector excluding $\ket{\rho_{ss}}\rangle$, a mode consisting of pure exponential decay toward the steady-state is seen by the straight lines in the logarithmic plot. This is to be expected since the time evolution only picks up one of the exponentials from \cref{eq:dynep}. The quicker decay corresponds to $\ket{\rho_3}\rangle$ since $|\lambda_3| > |\bar\lambda|$, see \cref{fig:spec}. When including both $\ket{\bar \rho}\rangle$ and $\ket{\rho_3}\rangle$ in the initial condition, the decay first follows the quicker decay channel, then gradually turns into following the decay of $\ket{\bar\rho}\rangle$. Another behavior is seen for the initial condition including $\ket{\rho'}\rangle$. This generalized mode is not of exponential nature, since a factor of $t\exp(\bar\lambda t)$ enters in the dynamics. Away from an EP, the dynamics is given by \cref{eq:dynnonep} and this type of algebraic decay never happens. Thus, the behavior of this decay channel is a unique feature of the EP dynamics.
+With initial conditions including only one $b_i\neq0$ or $\bar b\neq0$, i.e., only one normal eigenvector excluding $\ket{\rho_{ss}}\rangle$, a mode consisting of pure exponential decay toward the steady-state is seen by the straight lines in the logarithmic plot. This is expected since the time evolution only picks up one of the exponentials from \cref{eq:dynep}. The quicker decay corresponds to $\ket{\rho_3}\rangle$ since $|\lambda_3| > |\bar\lambda|$, see \cref{fig:spec}. When including both $\ket{\bar \rho}\rangle$ and $\ket{\rho_3}\rangle$ in the initial condition, the decay first follows the quicker decay channel, then gradually turns into following the decay of $\ket{\bar\rho}\rangle$. Another behavior is seen for the initial condition including $\ket{\rho'}\rangle$. This generalized mode is not of exponential nature, since a factor of $t\exp(\bar\lambda t)$ enters in the dynamics. Away from an EP, the dynamics is given by \cref{eq:dynnonep} and this type of algebraic decay never happens. Thus, the behavior of this decay channel is a unique feature of the EP dynamics.
 
 As discussed in the theory section, any relevant observable of the system can be obtained from the density operator. For the parallel dot system, the main observable is the current through the system, which by using \cref{eq:expec} can be obtained by
 \begin{equation}\label{eq:current}
@@ -110,7 +110,7 @@ for the current operator $\hat I$. The current operator can be phrased in terms 
 %     \hat{I}_s(t) = \diff{}{t}\hat{N}_s(t) = -i [\hat H, \hat{N}_s(t)],
 % \end{equation}
 
-Simulations were also done to investigate the general behavior of the current at and away from the EP. This is done in \cref{fig:diffI}, for two different initial conditions: one with empty dots, and the other in a mixed state. These density matrices are given by
+Simulations were also done to investigate the general behavior of the current at and slightly away from the EP. This is done in \cref{fig:diffI}, for two different initial conditions: one with empty dots, and the other in a mixed state. These initial density matrices are given by
 \begin{equation}\label{eq:initialI}
 \begin{split}
     1: \rho(0) = \rho_\text{empty} = &\begin{bmatrix} 1 & 0 & 0 & 0 \\
@@ -138,9 +138,9 @@ Simulations were also done to investigate the general behavior of the current at
   \caption{}
   \label{fig:diffde2}
 \end{subfigure}
-\caption{The current over time for different $\Delta = (\delta\epsilon_\text{EP} - \delta\epsilon)$, normalized by the steady-state current $I_{ss}$. The solid, blue curves correspond to the system being at the EP, while the other two are slightly away from it. The initial conditions are given by \cref{eq:initialI}, with a) having the empty initial condition and b) the mixed one.}
+\caption{The current over time for different $\Delta = (\delta\epsilon_\text{EP} - \delta\epsilon)$, normalized by the corresponding steady-state current $I_{ss}$. The solid, blue curves correspond to the system being at the EP, while the other two are slightly away from it. The initial conditions are given by \cref{eq:initialI}, with a) having the empty initial condition and b) the mixed one.}
 \label{fig:diffI}
 \end{figure}
-Furthermore, it can be noted that the current dynamics in \cref{fig:diffI} varies continuously when approaching and leaving the EP, which is to be expected even though the notion of EPs at first sight seems to invoke abrupt changes. However, there should be no discontinuities in a physical system.   
+Looking at \cref{fig:diffI}, it is clear that the three curves behave differently after the first phase of overshooting the steady-state, i.e., after $t\approx 2$. The curves corresponding to a $\Delta<0$, slightly overshoot the steady-state once more before approaching the steady-state solution. This can be phrased as an underdamped behavior. On the other hand, for $\Delta>0$, the decay towards the steady-state is very slow, which can be thought of as an overdamped system. Lastly, for the system at the EP, the decay is much faster than for the overdamped system, but does not overshoot the steady-state again like the underdamped system. This behavior is similar to what was found in Ref.~\cite{thermal} for quantum thermal machines, where it was found that the dynamics at the EP corresponds to the quickest decay without overshooting the steady-state, called critical decay. Furthermore, it can be noted that the current dynamics in \cref{fig:diffI} varies continuously when approaching and leaving the EP, which is to be expected even though the notion of EPs at first sight seems to invoke abrupt changes. However, there should be no discontinuities in a physical system.  
 
 \end{document}
