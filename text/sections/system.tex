@@ -1,7 +1,7 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../figures/}}}
 \begin{document}
-Equipped with the necessary theory, the dynamics of the parallel QD system can now be simulated. The equation of motion for the system is the Lindblad equation, given by \cref{eq:lind}, for the reduced density operator of the two quantum dots. In Fock-Liouville space, this is equation given by \cref{eq:lindfock}, with a matrix representation of the Liouvillian $L$. Specifying the values of the parameters of the system, $L$ can be constructed from the jump operators and the effective Hamiltonian in the Lindblad equation. By then searching for coalescing eigenvalues and eigenvectors of $L$ in the parameter space, EPs can be located, at which the dynamics obey \cref{eq:genmode}. Finally, \cref{eq:expec} can be used to simulate the transient current through the parallel QD system.
+Equipped with the necessary theory, the dynamics of the parallel QD system can now be simulated. The equation of motion for the system is the Lindblad equation, given by \cref{eq:lind}, for the reduced density operator of the two quantum dots. In Fock-Liouville space, this is equation given by \cref{eq:lindfock}, with a matrix representation of the Liouvillian, $L$. Specifying the values of the parameters of the system, $L$ can be constructed from the jump operators and the effective Hamiltonian in the Lindblad equation. By then searching for coalescing eigenvalues and eigenvectors of $L$ in the parameter space, EPs can be located, at which the dynamics obey \cref{eq:genmode}. Finally, \cref{eq:expec} can be used to simulate the transient current through the parallel QD system. The numerical calculations were done in Python using standard tools from the \verb+numpy+ and \verb+scipy+ packages. 
 \section{Model}
 In this thesis, a particular quantum dot system was studied, consisting of two quantum dots connected to two leads in thermal equilibrium. The quantum dots are assumed to be coupled in parallel to the leads, meaning that the dots are coupled to the same lead on each side. Furthermore, it is assumed that there is no direct tunneling between the dots. However, we consider an interacting system, with a finite contribution from the Coulomb repulsion between the electrons in the case of double occupancy. A sketch of the model is given in \cref{fig:model}.
 \begin{figure}[H] \centering
@@ -27,7 +27,7 @@ where $\hat d_i^\dag$ ($\hat d_i$), $i\in\{1,2\}$, creates (annihilates) an elec
 \begin{equation}
     \Gamma_{s,i} = 2\pi\nu_F|t_{s,i}|^2,
 \end{equation}
-where $\nu_F$ is the density of states in the lead, which is assumed to be independent of energy~\cite{perlind}.
+where $\nu_F$ is the density of states in the lead, which can be assumed to be independent of energy~\cite{perlind}.
 
 To represent the operators in matrix form, the many-body eigenstates of the isolated quantum dot Hamiltonian are used as the basis:
 \begin{equation}\label{eq:basis}
@@ -46,7 +46,7 @@ where $n_1$ and $n_2$ in $\ket{n_1n_2}$ are the number of electrons in dot first
     \end{aligned}
 \end{equation}
 
-In the basis given by \cref{eq:basis}, the elements of the reduced density matrix can be written as $\rho_{\alpha\beta}$, where $\alpha,\beta\in\{a,b,c,d\}$, with 16 matrix elements. However, the only non-zero off-diagonal elements are $\rho_{bc}$ and $\rho_{cb}$, i.e, the elements which corresponds to superpositions the two states with one occupied dot. This is the result of charge being a conserved quantity in the total system (source?). The number of elements in $\ket{\rho}\rangle$ is therefore reduced to 6, which in turn means that the Liouvillian effectively can be represented by a $6\times6$ matrix. The vectorization of the density matrix can be done in several ways, but in this thesis it is given by
+In the basis given by \cref{eq:basis}, the elements of the reduced density matrix can be written as $\rho_{\alpha\beta}$, where $\alpha,\beta\in\{a,b,c,d\}$, with 16 matrix elements. However, the only non-zero off-diagonal elements are $\rho_{bc}$ and $\rho_{cb}$, i.e, the elements which corresponds to superpositions the two states with one occupied dot. This is the result of charge being a conserved quantity in the total system. The number of elements in $\ket{\rho}\rangle$ is therefore reduced to 6, which in turn means that the Liouvillian effectively can be represented by a $6\times6$ matrix. The vectorization of the density matrix can be done in several ways, but in this thesis it is given by
 \begin{equation}\label{eq:order}
     \rho = \begin{bmatrix} \rho_{aa} & 0 & 0 & 0 \\
                     0 & \rho_{bb} & \rho_{bc} & 0 \\

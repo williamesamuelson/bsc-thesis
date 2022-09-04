@@ -15,6 +15,13 @@
 \usepackage[backend=biber, sorting=none, style=phys]{biblatex}
 \usepackage[capitalize]{cleveref}
 
+\newcommand{\changefont}{%
+    \fontsize{9}{11}\selectfont
+}
+\fancyhf{}
+\fancyhead[LE,RO]{\changefont \slshape \rightmark} %section
+\fancyhead[RE,LO]{\changefont \slshape \leftmark} %chapter
+
 \pagestyle{fancy}
 \hypersetup{
     colorlinks=true,
@@ -41,7 +48,7 @@
 \subfile{sections/intro}
 \chapter{Theory}\label{sec:theory}
 \subfile{sections/theory}
-\chapter{Dynamics at EP in the parallel QD}\label{sec:dyn}
+\chapter{EP-dynamics in a parallel dot system}\label{sec:dyn}
 \subfile{sections/system}
 \subfile{sections/results}
 \chapter{Conclusion and outlook}\label{sec:conc}
