@@ -3,11 +3,11 @@
 
 \begin{document}
 \section{Spectrum}
-The first step towards simulating the dynamics of the parallel dot system was to calculate the matrix representation of the Liouvillian. This was done by using an already implemented PERLind approach, which constructed the Liouvillian by calculating the four jump operators $\hat J_i$, $i\in\{1,2,3,4\}$, one for each tunneling process, and then calculating the unitary part of \cref{eq:lind}. Putting these two pieces together, the resulting Liouvillian matrix could then be compared with calculations using the Python-based QmeQ package \cite{qmeq} as a sanity check. The basis and ordering used for $L$ and $\ket{\rho}\rangle$ is given by \cref{eq:basis,eq:order}. Once the Liouvillian was constructed, the parameter space was searched for EPs by numerically calculating the eigenvalues of $L$ for varying $\delta\epsilon$ and $\delta\Gamma$. A degeneracy of eigenvalues was found at $\lambda_5 = \lambda_6\approx -0.5\Gamma$, for $\delta\Gamma = 10^{-6}\Gamma$ and $\delta\epsilon \approx 0.3\Gamma$, see \cref{fig:tuning}. The corresponding eigenvectors, $\ket{\rho_5}\rangle$ and $\ket{\rho_6}\rangle$, were found to also coalesce, confirming the existence of a second order EP. The eigenvalue and right eigenvector corresponding to the EP will be denoted by $\bar \lambda$ and $\ket{\bar\rho}\rangle$, respectively.
+The first step towards simulating the dynamics of the parallel dot system was to calculate the matrix representation of the Liouvillian. This was done by using an already implemented PERLind approach, which constructed the Liouvillian by calculating the four jump operators $\hat J_i$, $i\in\{1,2,3,4\}$, one for each tunneling process, and then calculating the unitary part of \cref{eq:lind}. Putting these two pieces together, the resulting Liouvillian matrix could then be compared with calculations using the Python-based QmeQ package \cite{qmeq} for comparison. The basis and ordering used for $L$ and $\ket{\rho}\rangle$ is given by \cref{eq:basis,eq:order}. Once the Liouvillian was constructed, the parameter space was searched for EPs by numerically calculating the eigenvalues of $L$ for varying $\delta\epsilon$ and $\delta\Gamma$. A degeneracy of eigenvalues was found at $\lambda_5 = \lambda_6\approx -0.5\Gamma$, for $\delta\Gamma = 10^{-6}\Gamma$ and $\delta\epsilon \approx 0.3\Gamma$, see \cref{fig:tuning}. The corresponding eigenvectors, $\ket{\rho_5}\rangle$ and $\ket{\rho_6}\rangle$, were found to also coalesce, confirming the existence of a second order EP. The eigenvalue and right eigenvector corresponding to the EP will be denoted by $\bar \lambda$ and $\ket{\bar\rho}\rangle$, respectively.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{figures/tuning.png}
-    \caption{The real and imaginary part of two eigenvalues to $L$, $\lambda_5$ and $\lambda_6$, for varying $\delta\epsilon$. An eigenvalue degeneracy at can be seen at $\delta\epsilon\approx0.3\Gamma$.}
+    \caption{The real and imaginary part of two eigenvalues to $L$, $\lambda_5$ and $\lambda_6$, for varying $\delta\epsilon$. An eigenvalue degeneracy can be seen at $\delta\epsilon\approx0.3\Gamma$.}
     \label{fig:tuning}
 \end{figure}
 
@@ -68,7 +68,7 @@ With a clear picture of the analytical dynamics and numerically calculated eigen
 \begin{equation}\label{eq:ini}
     \ket{\rho(0)}\rangle = \ket{\rho_{ss}}\rangle + \sum_{i=2}^4 b_i\ket{\rho_i}\rangle + \bar b \ket{\bar\rho}\rangle + b'\ket{\rho'}\rangle.
 \end{equation}
-This way, the constants $c$ in \cref{eq:dynep} are the same as the corresponding constants labeled with $b$ in \cref{eq:ini}. The generalized modes included in the evolution can then be controlled by the initial condition. To see this, simulations of the density matrix were done and then compared with the steady-state of the system, see \cref{fig:rhodiffrho0}. The particular initial conditions used for each simulation is given in~Table \ref{table:tab}.
+This way, the constants $c$ in \cref{eq:dynep} are the same as the corresponding constants labeled with $b$ in \cref{eq:ini}. The generalized modes included in the evolution can then be controlled by the initial condition. To see this, simulations of the density matrix were done and then compared with the steady-state of the system, see \cref{fig:rhodiffrho0}. The particular initial conditions used for each simulation are given in~Table \ref{table:tab}.
 \begin{figure}[H]
 \centering
 \begin{subfigure}[t]{.5\textwidth}
