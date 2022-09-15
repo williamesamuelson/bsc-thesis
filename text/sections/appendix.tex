@@ -1,0 +1,33 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../figures/}}}
+\begin{document}
+Here, we consider a general ODE of the form $\dot x = Ax$ and derive the solution in terms of generalized modes given by \cref{eq:genmode}. First, we follow the steps in the main text by introducing an initial condition contained in one of the Jordan chains:
+\begin{equation}\label{eq:appini}
+    x(0) = a_1r_i + a_2r_i^{(2)} + \cdots + a_{n_i}r_i^{(n_i)} = \boldsymbol{r}_ia,
+\end{equation}
+where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Inserting this into \cref{jordanode} gives
+\begin{equation}\label{eq:appyo}
+    x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix} \boldsymbol{r}_ia = Me^{Jt}\begin{bmatrix} 0_{n_1\times n_i} \\ \vdots \\ I_{n_i\times n_i} \\ \vdots \\ 0_{n_q\times n_i}\end{bmatrix}a,
+\end{equation}
+where the last step follows from that each product $\boldsymbol{l}_j\boldsymbol{r}_i$ results in $n_j\times n_i$ blocks of zeros if $j\neq i$ and the $n_i\times n_i$ identity matrix if $i=j$. Inserting the Jordan exponential now gives
+\begin{equation}\label{eq:appone}
+    \begin{aligned}
+        x(t) &= M \begin{bmatrix}e^{J_{n_1}(\lambda_1)t} & \dots & 0 \\
+                            \vdots & \ddots & \vdots \\
+                            0 & \dots &  e^{J_{n_q}(\lambda_q)t}\end{bmatrix}
+            \begin{bmatrix} 0_{n_1\times n_i} \\ \vdots \\ I_{n_i\times n_i} \\ \vdots \\ 0_{n_q\times n_i}\end{bmatrix}a = \begin{bmatrix}\boldsymbol{r}_1 \dots \boldsymbol{r}_q\end{bmatrix} \begin{bmatrix} 0_{n_1\times n_i} \\ \vdots \\ e^{J_{n_i}(\lambda_i)t} \\ \vdots \\ 0_{n_q\times n_i}\end{bmatrix}a =\\&= \boldsymbol{r}_ie^{J_{n_i}(\lambda_i)t}a.
+    \end{aligned}
+\end{equation}
+We can write a general initial condition as a linear combination of vectors in all Jordan chains as follows:
+\begin{equation}
+    x(0) = \sum_{i=1}^q \boldsymbol{r}_ia^{(i)},
+\end{equation}
+where each $a^{(i)}$ is a constant vector, similarly to \cref{eq:appini}, for each Jordan chain. Inserting this into \cref{jordanode}, and using \cref{eq:appone,eq:appyo} results in
+\begin{equation}
+    \begin{aligned}
+        x(t) &= Me^{Jt}M^{-1}x(0) = Me^{Jt}M^{-1}\sum_{i=1}^q \boldsymbol{r}_ia^{(i)} = \sum_{i=1}^qMe^{Jt}M^{-1} \boldsymbol{r}_ia^{(i)} =\\&= \sum_{i=1}^q\boldsymbol{r}_ie^{J_{n_i}(\lambda_i)t}a^{(i)} = \sum_{i=1}^q\boldsymbol{r}_ie^{J_{n_i}(\lambda_i)t}\boldsymbol{l}_ix(0),
+\end{aligned}
+\end{equation}
+and we are done.
+\end{document}
+
