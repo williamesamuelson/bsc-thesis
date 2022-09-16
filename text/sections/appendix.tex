@@ -22,7 +22,7 @@ We can write a general initial condition as a linear combination of vectors in a
 \begin{equation}
     x(0) = \sum_{i=1}^q \boldsymbol{r}_ia^{(i)},
 \end{equation}
-where each $a^{(i)}$ is a constant vector, similarly to \cref{eq:appini}, for each Jordan chain. Inserting this into \cref{jordanode}, and using \cref{eq:appone,eq:appyo} results in
+where each $a^{(i)}$ is a constant vector, similarly to \cref{eq:appini}, for each Jordan chain. Inserting this initial condition into \cref{jordanode}, and using \cref{eq:appone,eq:appyo} results in
 \begin{equation}
     \begin{aligned}
         x(t) &= Me^{Jt}M^{-1}x(0) = Me^{Jt}M^{-1}\sum_{i=1}^q \boldsymbol{r}_ia^{(i)} = \sum_{i=1}^qMe^{Jt}M^{-1} \boldsymbol{r}_ia^{(i)} =\\&= \sum_{i=1}^q\boldsymbol{r}_ie^{J_{n_i}(\lambda_i)t}a^{(i)} = \sum_{i=1}^q\boldsymbol{r}_ie^{J_{n_i}(\lambda_i)t}\boldsymbol{l}_ix(0),
