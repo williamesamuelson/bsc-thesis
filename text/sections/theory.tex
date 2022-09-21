@@ -18,11 +18,11 @@ Using this picture, the electron transport through the quantum dot can be easily
 It turns out that $\mu(N)$ depends linearly on the gate voltage $V_G$. Consequently, the ladder of states in \cref{fig:ladder} can be lowered or raised by changing $V_G$. The source-drain voltage $V_{SD}$ on the other hand, changes the difference between $\mu_S$ and $\mu_D$. Through these two processes, it is possible to change the electro-chemical potential landscape and therefore control the current through the system. This captures the main behavior of the dynamics of the quantum dot system. However, by adapting the theory of open quantum systems, a much richer and more accurate theory can be developed.
 
 \section{The theory of open quantum systems}
-Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the standard quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the dynamics of the smaller system from the equations of the total system~\cite{lindblad}. There are several approaches to open quantum systems, each with their own domain of relevance. In this thesis we will use a master equation approach, which handles electron-electron interactions in the smaller system well, but approximations have to be made regarding the strength of the coupling to the environment. Another approach is by using Green's functions, which is relevant in the opposite domain, i.e., when there is strong coupling to the environment but negligible electron-electron interactions~\cite{bruus2004many}.
+Open quantum systems are systems which are non-isolated and connected to some sort of environment. Often, it considers a total system consisting of the (sub)system of interest, and an environment. The total system is closed, and therefore it obeys the standard quantum mechanical equations of motion. The goal of the theory of open quantum systems is to infer the dynamics of the smaller system from the equations of the total system~\cite{lindblad}. There are several approaches to open quantum systems, each with their own domain of applicability. In this thesis we will use a master equation approach, which handles electron-electron interactions in the system of interest well, but has the disadvantage of requiring approximations regarding the strength of the coupling to the environment. Another approach is by using Green's functions, which is relevant in the opposite domain, i.e., when there is strong coupling to the environment but negligible electron-electron interactions~\cite{bruus2004many}.
 
 \subsection{The von Neumann equation and the reduced density operator}
 
-An essential tool used in the theory of open quantum systems is the density operator $\hat{\rho}$. A common approach for such systems is to assume that the system is known to be in a state $\ket{\psi_k}$ with a probability $p_k$, or in another state $\ket{\psi_l}$ with a different probability $p_l$. Generally, the system is then said to be in an ensemble $\{\ket{\psi_k}, p_k\}_k$. The density operator describes this information in a compact way:
+An essential tool used in the theory of open quantum systems is the density operator $\hat{\rho}$. A common approach for such systems is to assume that the system is known to be in a state $\ket{\psi_k}$ with a probability $p_k$, or in another state $\ket{\psi_l}$ with a different probability $p_l$, and so on. Generally, the system is then said to be in an ensemble $\{\ket{\psi_k}, p_k\}_k$. The density operator describes this information in a compact way:
 \begin{equation}
     \hat{\rho} = \sum_k p_k \ket{\psi_k}\bra{\psi_k}.
 \end{equation}
@@ -63,7 +63,7 @@ While a classical master equation may give accurate results for some quantum sys
 
 The starting point for quantum master equations is the von Neumann equation given by \cref{vonneumann}, for the density matrix of the total system. This equation is exact, but since the total system generally has a macroscopic amount of degrees of freedom, is not solvable. To progress, the idea is to reduce the number of degrees of freedom by applying the partial trace to trace out the environment, and then make suitable approximations to obtain a solvable quantum master equation for the smaller system of interest. A standard approximation is to assume that the coupling between the system and the environment is weak in comparison to the other energy scales of the system, such that the coupling can be treated perturbatively. This way, terms containing a coupling strength parameter of orders larger than a given precision can be neglected.
 
-One of the most established quantum master equations is the so called Lindblad equation~\cite{lindorigin}, which exists in several forms and can be derived in various ways. In Ref.~\cite{lindblad}, a form of the Lindblad equation is derived directly from the microscopic dynamics. The first part of the derivation follows the steps described in the previous paragraph, i.e., considers the coupling perturbatively and traces out the environment. To proceed, a Markovian approximation is applied. After a few more steps, the following form of the Lindblad equation is obtained:
+One of the most established quantum master equations is the so called Lindblad equation~\cite{lindorigin}, which exists in several forms and can be derived in various ways. In Ref.~\cite{lindblad}, a form of the Lindblad equation is derived directly from the microscopic dynamics. The first part of the derivation follows the steps described in the previous paragraph, i.e., considers the coupling perturbatively and traces out the environment. However, the resulting equation is in general still not solvable, and more approximations are necessary to proceed. One of the main assumptions that follows in the derivation is a Markovian approximation, meaning that the derivative of the density matrix is assumed to only depend on its current state, and not its past. At the end of the derivation, the following form of the Lindblad equation is obtained:
 \begin{equation}\label{eq:lind}
     \diff{\hat\rho}{t} = i[\hat\rho, \hat H_\text{eff}] + \sum_i \hat J_i\hat\rho\hat J_i^\dag - \frac{1}{2}\hat\rho\hat J_i^\dag\hat J_i - \frac{1}{2}\hat J_i^\dag\hat J_i \hat\rho \equiv \mathcal{L}\hat\rho,
 \end{equation}
@@ -74,17 +74,17 @@ The right hand side of the Lindblad equation can be divided into two parts. The 
 %One of the attractive properties of the Lindblad equation is that it ensures the positivity and unity trace of the density operator throughout the evolution (explain in prev section). Other quantum master equations do not have this property, which may cause negative probabilities and other unphysical results.
 
 \section{Exceptional points}\label{sec:ep}
-A matrix which describes the time evolution of a physical system, such as a Hamiltonian or a Liouvillian matrix, generally depends on the parameters of the system. These parameters span the so called parameter space, and it is in this space the EPs lie. An EP is defined as a point in the parameter space which causes two or more eigenvalues and their eigenvectors to simultaneously coalesce~\cite{nonHermrev}. Furthermore, EPs can be of a different orders, reflecting how many eigenvectors coalesce at the point. The notion of exceptional points and its orders are directly related to a type of matrix decomposition, the Jordan normal form.
+A matrix which describes the time evolution of a physical system, such as a Hamiltonian or a Liouvillian matrix, generally depends on the parameters of the system. These parameters span the so called parameter space, and it is in this space the EPs lie. An EP is defined as a point in the parameter space which causes two or more eigenvalues and their eigenvectors to simultaneously coalesce~\cite{nonHermrev}. Furthermore, EPs can be of a different orders, reflecting how many eigenvectors coalesce at the point. The notion of EPs and its orders are directly related to a type of matrix decomposition, the Jordan normal form.
 
 \subsection{Jordan normal form}\label{sec:jordan}
 
-In physics, a common way to simplify calculations is to diagonalize the matrix generating the time evolution of the system. The diagonalization process can be understood as a change of basis to linearly independent eigenvectors $r_i$, such that $Ar_i=\lambda_ir_i$, where $\lambda_i$ is the corresponding eigenvalue~\cite{uffe}. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
+In physics, a common way to simplify calculations is to diagonalize the matrix generating the time evolution of the system. The diagonalization process can be understood as a change of basis to linearly independent eigenvectors $r_i$, defined by $Ar_i=\lambda_ir_i$, where $\lambda_i$ is the corresponding eigenvalue~\cite{uffe}. In this basis, the linear transformation of the matrix is very simple: it scales each eigenvector $r_i$ by the corresponding eigenvalue. The matrix in the new basis is therefore diagonal, explaining the name of the process. For a matrix $A$ and its diagonal form $D$, this can be written as 
 \begin{equation}
     A = SDS^{-1},
 \end{equation}
 where $S = (r_1, \dots ,r_n)$ consists of the eigenvectors of $A$.
 
-However, not all matrices can be diagonalized, the exceptions being called defective matrices. For a defective matrix, there does not exist a complete basis of eigenvectors, and the diagonalization process is not possible~\cite{uffe}. This is closely related to the notion of exceptional points, since when two eigenvectors coalesce, one dimension is lost and the eigenvectors do not form a basis anymore. A matrix at an EP is therefore always defective.
+However, not all matrices can be diagonalized, the exceptions being called defective matrices. For a defective matrix, there does not exist a complete basis of eigenvectors, and the diagonalization process is not possible~\cite{uffe}. This is closely related to the notion of EPs, since when two eigenvectors coalesce, one dimension is lost and the eigenvectors do not form a basis anymore. A matrix at an EP is therefore always defective.
 
 Fortunately, there is a notion of an "almost diagonal" form for defective matrices, called the Jordan normal form. Recall that in the diagonalizable case, the basis is changed to the linearly independent eigenvectors. To construct the Jordan form for a defective matrix, this basis has to be completed in some way to span the full space. This can be done using Jordan chains~\cite{uffe}, which for each eigenvector $r_i$ with eigenvalue $\lambda_i$, consist of vectors $r_i, r_i^{(2)}, \dots,   r_i^{(n_i)}$ defined by
 \begin{equation}\label{jordanchain}
@@ -125,7 +125,7 @@ The Jordan normal form of $A$ is then finally obtained by forming $J = M^{-1}AM$
                                                     \vdots & & \ddots& 1 \\
                                                     0 & \dots & \dots & \lambda_i\end{bmatrix}.
 \end{equation}
-The Jordan form hence consists of $q$ Jordan blocks $J_{n_i}(\lambda_i)$ on the diagonal, where each block is of size $n_i$ and consists of its eigenvalue on the diagonal and ones on the super diagonal~\cite{uffe}. Note that if all blocks are of size one, i.e., if there are no exceptional points, the Jordan form is diagonal. The Jordan normal form can therefore be thought of a generalization of the diagonal form $D$.
+The Jordan form hence consists of $q$ Jordan blocks $J_{n_i}(\lambda_i)$ on the diagonal, where each block is of size $n_i$ and consists of its eigenvalue on the diagonal and ones on the super diagonal~\cite{uffe}. Note that if all blocks are of size one, i.e., if there are no EPs, the Jordan form is diagonal. The Jordan normal form can therefore be thought of a generalization of the diagonal form $D$.
 
 %A simple example of the construction of a Jordan normal form is helpful to understand the process.
 
@@ -136,7 +136,7 @@ To be able to use the Jordan form in calculations, a substitution $A\rightarrow 
 
 %A straightforward way of calculating the inverse modal matrix $M^{-1}$, is just to numerically invert $M$. However in the literature regarding Liouvillian exceptional points, the rows in $M^{-1}$ is often referred to as the \textit{left} generalized eigenvectors. Explain what they are. These can be constructed biorthonormally to the regular generalized eigenvectors, effectively creating $M^{-1}$. The left generalized eigenvectors can be numerically calculated by a similar method as the right ones. However, these then have to be modified such that they are orthogonal to the right generalized eigenvectors, which can be done using LU-decomposition. We now turn our attention to a useful application of the Jordan normal form, ODEs.
 
-\subsection{General solution of ODEs}
+\subsection{General solution of linear ODEs}
 A useful application of the Jordan form is for analytical solutions of ordinary differential equations (ODEs). A linear ODE is differential equation of the form
 \begin{equation}\label{eq:ode}
     \diff{x}{t}=Ax. 
@@ -168,14 +168,14 @@ To show this, suppose first that the initial state is in such an initial state, 
     x(0) = a_1r_i + a_2r_i^{(2)} + \dots + a_{n_i}r_i^{(n_i)} = \boldsymbol{r}_ia,
 \end{equation}
 where $a = (a_1, \dots a_{n_i})^T$ is a constant vector and $\boldsymbol{r}_i$ is defined in \cref{chofba}. Inserting this into \cref{jordanode}, the solution can be written as
-\begin{equation}
+\begin{equation}\label{eq:single}
     x(t) = Me^{Jt}M^{-1}x(0) = Me^{Jt} \begin{bmatrix} \boldsymbol{l}_1 \\ \vdots \\ \boldsymbol{l}_{q} \end{bmatrix} \boldsymbol{r}_ia = \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} a.
 \end{equation}
 Hence, the solution stays in the space spanned by the initial condition throughout the time evolution, as earlier proposed. For an arbitrary initial condition, the solution can be written as a sum over these generalized modes: 
 \begin{equation}\label{eq:genmode}
     x(t) = \sum_{i=1}^q \boldsymbol{r}_i e^{J_{n_i}(\lambda_i)t} \boldsymbol{l}_i x(0),
 \end{equation}
-and the initial condition therefore decides what modes are included in the dynamics of the system.
+and the initial condition therefore decides what modes are included in the dynamics of the system. A more detailed derivation of \cref{eq:single,eq:genmode} is done in \cref{sec:app}.
 
 Translating this theory into the language of Liouvillian physics, the underlying ODE is given by the Lindblad equation, transformed to Fock-Liouville space    
 \begin{equation}\label{eq:lindfock}
