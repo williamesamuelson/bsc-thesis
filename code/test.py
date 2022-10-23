@@ -365,6 +365,7 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
     plot -- what to plot, 'divide', 'subtract_log' or 'normal'
     method -- method of calculation, 'ep', 'diag' or 'num'.
     linestyle -- linestyle for plot
+    curr -- plot current
     ep -- ExceptionalPoint object, None for using dens_matrix_evo instead of
           dens_matrix_evo_ep
     """
@@ -400,7 +401,7 @@ def plot_current(system, t_vec, rho_0, direction, axis, plot, method,
         axis.set_ylabel(r'$I(t)$', fontsize=20)
     else:
         raise Exception(plot + ' is not a valid "plot" entry')
-    axis.set_xlabel(r'Time $(t)$', fontsize=20)
+    axis.set_xlabel(r'$t$ $[1/\Gamma]$', fontsize=20)
 
 
 def plot_current_ep_vs_nonep(system, t_vec, rho_0, direction, d_epsilons,
@@ -470,7 +471,7 @@ def plot_current_diff_rho0(system, t_vec, rhos, consts, direction, method, ep, c
     ax.legend(leg, fontsize=19)
     ax.tick_params(axis='both', which='major', labelsize=13)
     ax.tick_params(axis='both', which='minor', labelsize=11)
-    ax.set_xlabel('Time ' + r'$(t)$', fontsize=20)
+    ax.set_xlabel(r'$t$ $[1/\Gamma]$', fontsize=20)
     # plt.savefig('../text/figures/I_diff_rho0_nonvis.png', dpi=400,
     #             bbox_inches='tight')
     plt.show()
@@ -587,6 +588,4 @@ if __name__ == '__main__':
                                  v_bias=V_BIAS)
     l_shift = True
     parallel_dots.solve(lamb_shift=l_shift)
-    delta_eps = np.linspace(0.25, 0.35, 300)
-    eigs = calc_tuning(delta_eps, parallel_dots, l_shift)
-    plot_tuning(eigs, delta_eps, [1,2])
+    help_plot_curr_diffrho0(parallel_dots)

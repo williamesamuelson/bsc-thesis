@@ -78,7 +78,7 @@ This way, the constants $c$ in \cref{eq:dynep} are the same as the corresponding
 \centering
 \begin{subfigure}[t]{.5\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/rho_diff_rho0_v4.png}
+  \includegraphics[width=\linewidth]{figures/rho_diff_rho0_fin.png}
   \caption{}
   \label{fig:rhodiffrho0}
 \end{subfigure}%
@@ -160,5 +160,5 @@ Simulations were also done to investigate the general behavior of the current at
 \caption{The current over time for different $\Delta = \delta\epsilon_\text{EP} - \delta\epsilon$, normalized by the corresponding steady-state current $I_{ss}$. The solid, blue curves correspond to the system being at the EP, while the other two are slightly away from it. The initial conditions are given by \cref{eq:initialI}, with a) having the empty initial condition and b) the mixed one.}
 \label{fig:diffI}
 \end{figure}
-Looking at \cref{fig:diffI}, it is clear that the three curves behave differently after the first phase of overshooting the steady-state, i.e., after $t\approx 2$. The curves corresponding to a $\Delta<0$, slightly overshoot the steady-state once more before approaching the steady-state solution. This can be phrased as an underdamped behavior. On the other hand, for $\Delta>0$, the decay towards the steady-state is very slow, which can be thought of as an overdamped system. Lastly, for the system at the EP, the decay is much faster than for the overdamped system, but does not overshoot the steady-state again like the underdamped system. This behavior is similar to what was found in Ref.~\cite{thermal} for quantum thermal machines, where the dynamics at the EP corresponded to the quickest decay without overshooting the steady-state, which is known as critical damping. Furthermore, it can be noted that the current dynamics in \cref{fig:diffI} varies continuously when approaching and leaving the EP, even though the notion of EPs at first sight does seem to invoke abrupt changes.
+Looking at \cref{fig:diffI}, it is clear that the three curves behave differently after the first phase of overshooting the steady-state, i.e., after $t\approx 2/\Gamma$. The curves corresponding to a $\Delta<0$, slightly overshoot the steady-state once more before approaching the steady-state solution. This can be phrased as an underdamped behavior. On the other hand, for $\Delta>0$, the decay towards the steady-state is very slow, which can be thought of as an overdamped system. Lastly, for the system at the EP, the decay is much faster than for the overdamped system, but does not overshoot the steady-state again like the underdamped system. This behavior is similar to what was found in Ref.~\cite{thermal} for quantum thermal machines, where the dynamics at the EP corresponded to the quickest decay without overshooting the steady-state, which is known as critical damping. Furthermore, it can be noted that the current dynamics in \cref{fig:diffI} varies continuously when approaching and leaving the EP, even though the notion of EPs at first sight does seem to invoke abrupt changes.
 \end{document}
