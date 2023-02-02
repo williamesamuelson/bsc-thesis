@@ -15,5 +15,3 @@ In this thesis, we study a system of two quantum dots coupled in parallel to met
 <img src="https://user-images.githubusercontent.com/78036889/192152862-892c3db9-b502-4805-a3d1-8a213bf690a8.png" width=80% height=80%>
 
 Furthermore, the dynamics at this exceptional point is analyzed in detail using a combination of analytical and numerical methods, including simulations of the density operator and the current through the system. By considering the Jordan form of $\mathcal{L}$, we show that the dynamics can be understood in terms of generalized modes and that the system exhibits unique algebraic decay at the exceptional point. Furthermore, critical damping at the exceptional point is indicated in the current, in accordance with a previous work on exceptional points in quantum thermal machines.
-
-<img src="https://user-images.githubusercontent.com/78036889/192154121-2b29a63a-cb3f-412f-a7fa-77807bd830f7.png" width=80% height=80%>
